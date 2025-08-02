@@ -19,7 +19,7 @@ namespace CANUDS_DTC_Report
 
                 try
                 {
-                    var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     var timestampStr = parts[1].Replace("(", "").Replace(")", "");
                     var time = DateTime.Now.AddSeconds(double.Parse(timestampStr, CultureInfo.InvariantCulture));
 
