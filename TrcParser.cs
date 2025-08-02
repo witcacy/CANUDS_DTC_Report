@@ -19,16 +19,17 @@ namespace CANUDS_DTC_Report
 
                 try
                 {
-                    var parts = line.Split(' ');
+                    var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     var timestampStr = parts[1].Replace("(", "").Replace(")", "");
                     var time = DateTime.Now.AddSeconds(double.Parse(timestampStr, CultureInfo.InvariantCulture));
 
                     uint id = Convert.ToUInt32(parts[4], 16);
 
                     var dataList = new List<byte>();
-                    for (int i = 5; i < parts.Length; i++)
+                    int dataStartIndex = Array.IndexOf(parts, "-") + 2;
+                    for (int i = dataStartIndex; i < parts.Length; i++)
                     {
-                        if (byte.TryParse(parts[i], NumberStyles.HexNumber, null, out var b))
+                        if (byte.TryParse(parts[i], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var b))
                             dataList.Add(b);
                     }
 
