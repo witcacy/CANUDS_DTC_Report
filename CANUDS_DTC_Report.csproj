@@ -57,6 +57,7 @@
     <Compile Include="Models\CanFrame.cs" />
     <Compile Include="Models\DtcInfo.cs" />
     <Compile Include="Models\IsoTpMessage.cs" />
+    <Compile Include="Models\UdsMessageInfo.cs" />
     <Compile Include="PCAN-ISO-TP_2016.cs" />
     <Compile Include="PCAN-UDS_2013.cs" />
     <Compile Include="PCANBasic.cs" />

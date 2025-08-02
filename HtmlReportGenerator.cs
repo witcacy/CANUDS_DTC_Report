@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -8,7 +8,7 @@ namespace CANUDS_DTC_Report
 {
     public class HtmlReportGenerator
     {
-        public void GenerateReport(List<DtcInfo> dtcs, string outputPath)
+        public void GenerateReport(List<DtcInfo> dtcs, List<UdsMessageInfo> udsMessages, string analysis, string outputPath)
         {
             var html = new StringBuilder();
 
@@ -57,6 +57,27 @@ namespace CANUDS_DTC_Report
             }
 
             html.AppendLine("</table>");
+
+            html.AppendLine("<h2>Mensajes UDS Detectados</h2>");
+            if (udsMessages.Count == 0)
+            {
+                html.AppendLine("<p>No se detectaron mensajes compatibles con UDS.</p>");
+            }
+            else
+            {
+                html.AppendLine("<ul>");
+                foreach (var msg in udsMessages)
+                {
+                    var role = msg.IsPositiveResponse ? "Resp" : "Req";
+                    var extra = msg.NegativeResponseCode.HasValue ? $" NRC 0x{msg.NegativeResponseCode.Value:X2}" : string.Empty;
+                    html.AppendLine($"<li>{role} {msg.ServiceName} (SID 0x{msg.RawServiceId:X2}){extra}</li>");
+                }
+                html.AppendLine("</ul>");
+            }
+
+            html.AppendLine("<h2>Análisis</h2>");
+            html.AppendLine($"<p>{analysis}</p>");
+
             html.AppendLine("<p>Fin del reporte. Interpretado con librerías PEAK PCAN-UDS y PCAN-ISO-TP.</p>");
             html.AppendLine("</body></html>");
 

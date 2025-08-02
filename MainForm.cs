@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,10 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CANUDS_DTC_Report.Models;
 
 namespace CANUDS_DTC_Report
 {
-     
+
     public partial class MainForm : Form
     {
         private string trcFilePath;
@@ -45,7 +46,17 @@ namespace CANUDS_DTC_Report
                 // Paso 1: Leer y parsear .trc
                 var frames = TrcParser.Parse(trcFilePath);
                 var messages = IsoTpDecoder.Decode(frames);
+                var udsMessages = UdsInterpreter.ClassifyUdsMessages(messages);
                 var dtcs = UdsInterpreter.ExtractDTCs(messages);
+                var analysis = dtcs.Count == 0 ? UdsInterpreter.AnalyzeDtcAbsence(udsMessages) : $"Se encontraron {dtcs.Count} DTC(s).";
+
+                foreach (var msg in udsMessages)
+                {
+                    var role = msg.IsPositiveResponse ? "Resp" : "Req";
+                    var extra = msg.NegativeResponseCode.HasValue ? $" NRC 0x{msg.NegativeResponseCode.Value:X2}" : string.Empty;
+                    txtOutput.AppendText($"{role} {msg.ServiceName} SID 0x{msg.RawServiceId:X2}{extra}{Environment.NewLine}");
+                }
+                txtOutput.AppendText($"Analisis: {analysis}{Environment.NewLine}");
 
                 // Paso 2: Guardar HTML
                 var saveDialog = new SaveFileDialog();
@@ -55,7 +66,7 @@ namespace CANUDS_DTC_Report
                 if (saveDialog.ShowDialog() == DialogResult.OK)
                 {
                     var generator = new HtmlReportGenerator();
-                    generator.GenerateReport(dtcs, saveDialog.FileName);
+                    generator.GenerateReport(dtcs, udsMessages, analysis, saveDialog.FileName);
                     txtOutput.AppendText($"Reporte generado exitosamente: {saveDialog.FileName}{Environment.NewLine}");
                 }
             }
