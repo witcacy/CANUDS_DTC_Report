@@ -1,0 +1,11 @@
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\bin\Debug\CANUDS_DTC_Report.exe.config
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\bin\Debug\CANUDS_DTC_Report.exe
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\bin\Debug\CANUDS_DTC_Report.pdb
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\obj\Debug\CANUDS_DTC_Report.csproj.AssemblyReference.cache
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\obj\Debug\CANUDS_DTC_Report.MainForm.resources
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\obj\Debug\CANUDS_DTC_Report.Properties.Resources.resources
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\obj\Debug\CANUDS_DTC_Report.csproj.GenerateResource.cache
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\obj\Debug\CANUDS_DTC_Report.csproj.CoreCompileInputs.cache
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\obj\Debug\CANUDS_DTC_Report.exe
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\obj\Debug\CANUDS_DTC_Report.pdb
+C:\Users\Rfmartinez.BBBMEX\source\repos\CANUDS_DTC_Report\CANUDS_DTC_Report\obj\Debug\CANUDS_DTC_Report.exe.config
