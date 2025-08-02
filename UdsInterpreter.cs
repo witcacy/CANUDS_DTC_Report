@@ -12,8 +12,9 @@ namespace CANUDS_DTC_Report
         {
             var dtcs = new List<DtcInfo>();
 
-            foreach (var msg in messages)
+            for (int msgIndex = 0; msgIndex < messages.Count; msgIndex++)
             {
+                var msg = messages[msgIndex];
                 if (msg.Payload.Count < 3 || msg.Payload[0] != 0x59) // 0x59 = Positive Response to 0x19
                     continue;
 
@@ -27,7 +28,19 @@ namespace CANUDS_DTC_Report
                     string severity = "Unknown";
                     string origin = "ECU";
 
-                    dtcs.Add(new DtcInfo(dtcCode, description, status, severity, origin));
+                    string fragment = BitConverter.ToString(msg.Payload.Skip(index).Take(4).ToArray()).Replace("-", " ");
+                    int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
+                    string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
+                    string typeBits = $"{bits} -> {dtcCode[0]}";
+
+                    var info = new DtcInfo(dtcCode, description, status, severity, origin)
+                    {
+                        MessageFragment = fragment,
+                        MessageNumber = msgIndex + 1,
+                        TypeBits = typeBits
+                    };
+
+                    dtcs.Add(info);
 
                     index += 4; // 3 bytes DTC + 1 byte status availability mask
                 }
