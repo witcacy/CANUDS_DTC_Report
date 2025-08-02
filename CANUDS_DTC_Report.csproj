@@ -94,6 +94,7 @@
   <ItemGroup>
     <Content Include="DTCREAD.trc" />
     <Content Include="dtc_analysis.txt" />
+    <Content Include="ECUINF.trc" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
