@@ -18,6 +18,8 @@ namespace CANUDS_DTC_Report
                 if (msg.Payload.Count < 3 || msg.Payload[0] != 0x59) // 0x59 = Positive Response to 0x19
                     continue;
 
+                string subFunction = msg.Payload.Count > 1 ? msg.Payload[1].ToString("X2") : "";
+
                 int index = 3;
                 while (index + 3 <= msg.Payload.Count)
                 {
@@ -28,13 +30,14 @@ namespace CANUDS_DTC_Report
                     string severity = "Unknown";
                     string origin = "ECU";
 
-                    string fragment = BitConverter.ToString(msg.Payload.Skip(index).Take(4).ToArray()).Replace("-", " ");
+                    string fragment = BuildFragment(msg.Payload, index);
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
                     string typeBits = $"{bits} -> {dtcCode[0]}";
 
                     var info = new DtcInfo(dtcCode, description, status, severity, origin)
                     {
+                        SubFunction = subFunction,
                         MessageFragment = fragment,
                         MessageNumber = msgIndex + 1,
                         TypeBits = typeBits
@@ -107,6 +110,16 @@ namespace CANUDS_DTC_Report
                          ((raw >> 16) & 0x3F).ToString("X2") +
                          ((raw >> 8) & 0xFF).ToString("X2");
             return dtc;
+        }
+
+        private static string BuildFragment(List<byte> payload, int dtcStartIndex)
+        {
+            var hexBytes = payload.Select(b => b.ToString("X2")).ToArray();
+            if (payload.Count > 1)
+                hexBytes[1] = $"<span class='subfunc'>{hexBytes[1]}</span>";
+            for (int i = 0; i < 3 && dtcStartIndex + i < hexBytes.Length; i++)
+                hexBytes[dtcStartIndex + i] = $"<span class='dtc'>{hexBytes[dtcStartIndex + i]}</span>";
+            return string.Join(" ", hexBytes);
         }
 
         private static string GetServiceName(byte sid)

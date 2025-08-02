@@ -19,19 +19,22 @@ namespace CANUDS_DTC_Report
             html.AppendLine("table { border-collapse: collapse; width: 100%; }");
             html.AppendLine("th, td { border: 1px solid #ddd; padding: 8px; }");
             html.AppendLine("th { background-color: #f2f2f2; }");
-            html.AppendLine("pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; }");
+            html.AppendLine(".subfunc { background-color: #fff176; }");
+            html.AppendLine(".dtc { background-color: #81d4fa; }");
             html.AppendLine("</style></head><body>");
 
             html.AppendLine("<h1>Reporte de Códigos DTC vía UDS</h1>");
             html.AppendLine("<p>Este reporte fue generado automáticamente interpretando respuestas UDS conforme a ISO 14229-1 y formato ISO-TP.</p>");
             html.AppendLine($"<p>Total de mensajes UDS analizados: {udsMessages.Count}</p>");
             html.AppendLine("<table>");
-            html.AppendLine("<tr><th>DTC</th><th>Descripción</th><th>Estado</th><th>Origen</th><th>Explicación Técnica</th></tr>");
+            html.AppendLine("<tr><th>DTC</th><th>Subfunción</th><th>Fragmento</th><th>Descripción</th><th>Estado</th><th>Origen</th><th>Explicación Técnica</th></tr>");
 
             foreach (var dtc in dtcs)
             {
                 html.AppendLine("<tr>");
                 html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.Code}\" target=\"_blank\">{dtc.Code}</a></td>");
+                html.AppendLine($"<td>{dtc.SubFunction}</td>");
+                html.AppendLine($"<td><code>{dtc.MessageFragment}</code></td>");
                 html.AppendLine($"<td>{dtc.Description}</td>");
                 html.AppendLine($"<td>{dtc.Status}</td>");
                 html.AppendLine($"<td>{dtc.Origin}</td>");
@@ -40,21 +43,14 @@ namespace CANUDS_DTC_Report
                 html.AppendLine("<strong>Interpretación:</strong><br/>");
                 html.AppendLine("<ul>");
                 html.AppendLine("<li>Se utilizó el servicio <code>0x19 - ReadDTCInformation</code> del estándar <strong>ISO 14229-1:2013</strong>.</li>");
-                html.AppendLine("<li>Se recibió una respuesta positiva <code>0x59</code> del ECU, lo cual indica éxito.</li>");
                 html.AppendLine("<li>El DTC fue extraído de la estructura de respuesta codificada en ISO-TP (ISO 15765-2).</li>");
-                html.AppendLine("<li>El código hexadecimal fue decodificado como un número de 24 bits: MSB→LSB → <code>AA BB CC</code> → combinado como un entero de 3 bytes.</li>");
+                html.AppendLine($"<li>Subfunción utilizada: 0x{dtc.SubFunction}</li>");
                 html.AppendLine("<li>Se identificó el tipo de DTC con los 2 bits más significativos según la tabla: 00 = P, 01 = C, 10 = B, 11 = U.</li>");
-                html.AppendLine("<li>Se construyó el código estándar (por ejemplo, <code>P0100</code>) a partir de los bits restantes.</li>");
-                html.AppendLine($"<li>Fragmento del mensaje: <code>{dtc.MessageFragment}</code></li>");
                 html.AppendLine($"<li>Número de mensaje: {dtc.MessageNumber}</li>");
                 html.AppendLine($"<li>Bits de tipo decodificados: {dtc.TypeBits}</li>");
-                html.AppendLine("<li>Los primeros 3 bytes representan el DTC y el cuarto byte la máscara de estado según ISO 14229-1.</li>");
+                html.AppendLine("<li>Los bytes resaltados indican la subfunción y el código DTC dentro del mensaje.</li>");
                 html.AppendLine("</ul>");
 
-                html.AppendLine("<strong>Más detalles:</strong>");
-                html.AppendLine("<pre>");
-                html.AppendLine($"- Código crudo (hex): 0x{dtc.Code}\n- Descripción: {dtc.Description ?? \"No disponible\"}\n- Estado interpretado: {dtc.Status}\n- Protocolo: ISO 15765-2 (ISO-TP) + ISO 14229-1 (UDS)\n- Fragmento: {dtc.MessageFragment}\n- Mensaje #: {dtc.MessageNumber}\n- Bits tipo: {dtc.TypeBits}");
-                html.AppendLine("</pre>");
                 html.AppendLine("</td>");
                 html.AppendLine("</tr>");
             }
