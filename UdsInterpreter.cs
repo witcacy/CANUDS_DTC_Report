@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using CANUDS_DTC_Report.Models;
 using Peak.Can.Uds;
 
@@ -50,6 +51,43 @@ namespace CANUDS_DTC_Report
             }
 
             return dtcs;
+        }
+
+        public static List<EcuInfo> ExtractEcuInfos(List<IsoTpMessage> messages)
+        {
+            var infos = new List<EcuInfo>();
+
+            foreach (var msg in messages)
+            {
+                if (msg.Payload.Count < 3) continue;
+                byte sid = msg.Payload[0];
+
+                if (sid == 0x5A) // Positive response to 0x1A (ECUINF)
+                {
+                    byte subFunc = msg.Payload[1];
+                    var data = msg.Payload.Skip(2).ToArray();
+                    infos.Add(new EcuInfo
+                    {
+                        Service = "ECUINF",
+                        Identifier = $"0x{subFunc:X2}",
+                        Value = DecodeData(data)
+                    });
+                }
+                else if (sid == 0x62) // Positive response to 0x22 (ReadDataByIdentifier)
+                {
+                    if (msg.Payload.Count < 4) continue;
+                    ushort did = (ushort)((msg.Payload[1] << 8) | msg.Payload[2]);
+                    var data = msg.Payload.Skip(3).ToArray();
+                    infos.Add(new EcuInfo
+                    {
+                        Service = "ECU Information",
+                        Identifier = $"0x{did:X4}",
+                        Value = DecodeData(data)
+                    });
+                }
+            }
+
+            return infos;
         }
 
         public static List<UdsMessageInfo> ClassifyUdsMessages(List<IsoTpMessage> messages)
@@ -122,10 +160,21 @@ namespace CANUDS_DTC_Report
             return string.Join(" ", hexBytes);
         }
 
+        private static string DecodeData(byte[] data)
+        {
+            if (data.All(b => b >= 0x20 && b <= 0x7E))
+                return Encoding.ASCII.GetString(data);
+            return BitConverter.ToString(data).Replace("-", " ");
+        }
+
         private static string GetServiceName(byte sid)
         {
             var name = Enum.GetName(typeof(uds_service), (uds_service)sid);
-            return name ?? $"0x{sid:X2}";
+            if (name != null)
+                return name;
+            if (sid == 0x1A)
+                return "ECU Information";
+            return $"0x{sid:X2}";
         }
     }
 }
