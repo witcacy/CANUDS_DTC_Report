@@ -11,6 +11,7 @@
         public string MessageFragment { get; set; } // Fragmento hexadecimal del mensaje que contiene el DTC
         public int MessageNumber { get; set; }      // Número de mensaje ISO-TP donde se encontró
         public string TypeBits { get; set; }        // Bits decodificados que indican el tipo de DTC
+        public uint CanId { get; set; }             // ID CAN del ECU que envió el DTC
 
         public DtcInfo(string code, string description, string status, string severity, string origin)
         {

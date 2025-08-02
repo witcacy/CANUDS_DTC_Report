@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using CANUDS_DTC_Report.Models;
 
@@ -34,10 +35,11 @@ namespace CANUDS_DTC_Report
             else
             {
                 html.AppendLine("<table>");
-                html.AppendLine("<tr><th>Servicio</th><th>Identificador</th><th>Valor</th></tr>");
+                html.AppendLine("<tr><th>ID CAN</th><th>Servicio</th><th>Identificador</th><th>Valor</th></tr>");
                 foreach (var info in ecuInfos)
                 {
                     html.AppendLine("<tr>");
+                    html.AppendLine($"<td>0x{info.CanId:X3}</td>");
                     html.AppendLine($"<td>{info.Service}</td>");
                     html.AppendLine($"<td>{info.Identifier}</td>");
                     html.AppendLine($"<td>{info.Value}</td>");
@@ -48,12 +50,13 @@ namespace CANUDS_DTC_Report
 
             html.AppendLine("<h2>Códigos DTC</h2>");
             html.AppendLine("<table>");
-            html.AppendLine("<tr><th>DTC</th><th>Subfunción</th><th>Fragmento</th><th>Descripción</th><th>Estado</th><th>Origen</th><th>Explicación Técnica</th></tr>");
+            html.AppendLine("<tr><th>DTC</th><th>ID CAN</th><th>Subfunción</th><th>Fragmento</th><th>Descripción</th><th>Estado</th><th>Origen</th><th>Explicación Técnica</th></tr>");
 
             foreach (var dtc in dtcs)
             {
                 html.AppendLine("<tr>");
                 html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.Code}\" target=\"_blank\">{dtc.Code}</a></td>");
+                html.AppendLine($"<td>0x{dtc.CanId:X3}</td>");
                 html.AppendLine($"<td>{dtc.SubFunction}</td>");
                 html.AppendLine($"<td><code>{dtc.MessageFragment}</code></td>");
                 html.AppendLine($"<td>{dtc.Description}</td>");
@@ -77,6 +80,28 @@ namespace CANUDS_DTC_Report
             }
 
             html.AppendLine("</table>");
+
+            var ecuGroups = dtcs.GroupBy(d => d.CanId);
+            if (ecuGroups.Any())
+            {
+                html.AppendLine("<h2>DTCs por ECU</h2>");
+                foreach (var group in ecuGroups)
+                {
+                    var ecuName = ecuInfos.Where(e => e.CanId == group.Key)
+                                           .Select(e => e.Value)
+                                           .FirstOrDefault(v => v.Any(char.IsLetter));
+                    html.AppendLine($"<h3>ECU ID: 0x{group.Key:X3}</h3>");
+                    if (!string.IsNullOrEmpty(ecuName))
+                        html.AppendLine($"<p>ECU Tipo: {ecuName}</p>");
+                    html.AppendLine("<table>");
+                    html.AppendLine("<tr><th>DTC</th><th>Descripción breve</th></tr>");
+                    foreach (var dtc in group)
+                    {
+                        html.AppendLine($"<tr><td>{dtc.Code}</td><td>{dtc.Description}</td></tr>");
+                    }
+                    html.AppendLine("</table>");
+                }
+            }
 
             html.AppendLine("<h2>Mensajes UDS Detectados</h2>");
             if (udsMessages.Count == 0)

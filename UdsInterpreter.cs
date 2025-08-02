@@ -41,7 +41,8 @@ namespace CANUDS_DTC_Report
                         SubFunction = subFunction,
                         MessageFragment = fragment,
                         MessageNumber = msgIndex + 1,
-                        TypeBits = typeBits
+                        TypeBits = typeBits,
+                        CanId = msg.Id
                     };
 
                     dtcs.Add(info);
@@ -70,7 +71,8 @@ namespace CANUDS_DTC_Report
                     {
                         Service = "ECUINF",
                         Identifier = $"0x{subFunc:X2}",
-                        Value = DecodeData(data)
+                        Value = DecodeData(data),
+                        CanId = msg.Id
                     });
                 }
                 else if (sid == 0x62) // Positive response to 0x22 (ReadDataByIdentifier)
@@ -82,7 +84,8 @@ namespace CANUDS_DTC_Report
                     {
                         Service = "ECU Information",
                         Identifier = $"0x{did:X4}",
-                        Value = DecodeData(data)
+                        Value = DecodeData(data),
+                        CanId = msg.Id
                     });
                 }
             }
