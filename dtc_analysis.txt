@@ -1,0 +1,11 @@
+Your DTC reports are empty because the trace parser does not match the structure of PCAN .trc files.
+
+The parser splits each line by a single space and assumes fixed positions for the timestamp, CAN ID and data bytes. Real .trc lines contain variable whitespace and include the DLC (data length code) before the data bytes. Because of this, the code either fails to parse lines or treats the DLC as the first byte of the frame. The resulting frames contain incorrect payloads, so the ISO-TP decoder never sees valid UDS responses and no DTCs are extracted.
+
+In `TrcParser.Parse` you should:
+  * Split lines using `StringSplitOptions.RemoveEmptyEntries` so multiple spaces don't create empty array entries.
+  * Skip the DLC field and start copying CAN data from the following index.
+
+After fixing the parser, verify that ISO-TP frames produce messages whose first payload byte is `0x59` (positive response to service 0x19). Then `UdsInterpreter.ExtractDTCs` will be able to decode your DTC codes.
+
+Additionally, the ISO-TP decoder currently finalizes a multi-frame message after the first consecutive frame if the first byte equals `0x59`. For longer responses this truncates data. You can track the expected payload length from the first frame and only complete the message once all bytes are received.
