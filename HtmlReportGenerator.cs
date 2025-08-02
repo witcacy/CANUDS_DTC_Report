@@ -8,7 +8,7 @@ namespace CANUDS_DTC_Report
 {
     public class HtmlReportGenerator
     {
-        public void GenerateReport(List<DtcInfo> dtcs, List<UdsMessageInfo> udsMessages, string analysis, string outputPath)
+        public void GenerateReport(List<DtcInfo> dtcs, List<UdsMessageInfo> udsMessages, List<EcuInfo> ecuInfos, string analysis, string outputPath)
         {
             var html = new StringBuilder();
 
@@ -26,6 +26,27 @@ namespace CANUDS_DTC_Report
             html.AppendLine("<h1>Reporte de Códigos DTC vía UDS</h1>");
             html.AppendLine("<p>Este reporte fue generado automáticamente interpretando respuestas UDS conforme a ISO 14229-1 y formato ISO-TP.</p>");
             html.AppendLine($"<p>Total de mensajes UDS analizados: {udsMessages.Count}</p>");
+            html.AppendLine("<h2>Información de ECU</h2>");
+            if (ecuInfos.Count == 0)
+            {
+                html.AppendLine("<p>No se detectó información de ECU.</p>");
+            }
+            else
+            {
+                html.AppendLine("<table>");
+                html.AppendLine("<tr><th>Servicio</th><th>Identificador</th><th>Valor</th></tr>");
+                foreach (var info in ecuInfos)
+                {
+                    html.AppendLine("<tr>");
+                    html.AppendLine($"<td>{info.Service}</td>");
+                    html.AppendLine($"<td>{info.Identifier}</td>");
+                    html.AppendLine($"<td>{info.Value}</td>");
+                    html.AppendLine("</tr>");
+                }
+                html.AppendLine("</table>");
+            }
+
+            html.AppendLine("<h2>Códigos DTC</h2>");
             html.AppendLine("<table>");
             html.AppendLine("<tr><th>DTC</th><th>Subfunción</th><th>Fragmento</th><th>Descripción</th><th>Estado</th><th>Origen</th><th>Explicación Técnica</th></tr>");
 

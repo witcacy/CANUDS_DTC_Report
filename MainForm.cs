@@ -48,6 +48,7 @@ namespace CANUDS_DTC_Report
                 var messages = IsoTpDecoder.Decode(frames);
                 var udsMessages = UdsInterpreter.ClassifyUdsMessages(messages);
                 var dtcs = UdsInterpreter.ExtractDTCs(messages);
+                var ecuInfos = UdsInterpreter.ExtractEcuInfos(messages);
                 var analysis = dtcs.Count == 0 ? UdsInterpreter.AnalyzeDtcAbsence(udsMessages) : $"Se encontraron {dtcs.Count} DTC(s).";
 
                 foreach (var msg in udsMessages)
@@ -55,6 +56,10 @@ namespace CANUDS_DTC_Report
                     var role = msg.IsPositiveResponse ? "Resp" : "Req";
                     var extra = msg.NegativeResponseCode.HasValue ? $" NRC 0x{msg.NegativeResponseCode.Value:X2}" : string.Empty;
                     txtOutput.AppendText($"{role} {msg.ServiceName} SID 0x{msg.RawServiceId:X2}{extra}{Environment.NewLine}");
+                }
+                foreach (var info in ecuInfos)
+                {
+                    txtOutput.AppendText($"ECU Info {info.Service} {info.Identifier}: {info.Value}{Environment.NewLine}");
                 }
                 txtOutput.AppendText($"Analisis: {analysis}{Environment.NewLine}");
 
@@ -66,7 +71,7 @@ namespace CANUDS_DTC_Report
                 if (saveDialog.ShowDialog() == DialogResult.OK)
                 {
                     var generator = new HtmlReportGenerator();
-                    generator.GenerateReport(dtcs, udsMessages, analysis, saveDialog.FileName);
+                    generator.GenerateReport(dtcs, udsMessages, ecuInfos, analysis, saveDialog.FileName);
                     txtOutput.AppendText($"Reporte generado exitosamente: {saveDialog.FileName}{Environment.NewLine}");
                 }
             }
