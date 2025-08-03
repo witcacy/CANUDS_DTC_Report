@@ -45,18 +45,13 @@ namespace CANUDS_DTC_Report
                     byte b3 = msg.Payload[index + 2];
                     byte statusByte = msg.Payload[index + 3];
 
-                    // Build a table of all payload bytes highlighting the DTC bytes
+                    // Table with only the DTC bytes
                     var bytesHtml = new StringBuilder();
                     bytesHtml.Append("<table class='dtc-bytes'><tr>");
-                    for (int i = 0; i < msg.Payload.Count; i++)
-                    {
-                        string cls = "unused";
-                        if (i == index) cls = "b1";
-                        else if (i == index + 1) cls = "b2";
-                        else if (i == index + 2) cls = "b3";
-                        else if (i == index + 3) cls = "status";
-                        bytesHtml.Append($"<td class='{cls}'>{msg.Payload[i]:X2}</td>");
-                    }
+                    bytesHtml.Append($"<td class='b1'>{b1:X2}</td>");
+                    bytesHtml.Append($"<td class='b2'>{b2:X2}</td>");
+                    bytesHtml.Append($"<td class='b3'>{b3:X2}</td>");
+                    bytesHtml.Append($"<td class='status'>{statusByte:X2}</td>");
                     bytesHtml.Append("</tr></table>");
                     string coloredFragment = bytesHtml.ToString();
 
@@ -65,12 +60,22 @@ namespace CANUDS_DTC_Report
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
                     string typeBits = $"{bits} -> {dtcCode[0]}";
+
+                    // Build binary representation highlighting zero bits in gray
+                    var statusBits = new StringBuilder();
+                    for (int bit = 7; bit >= 0; bit--)
+                    {
+                        bool set = ((statusByte >> bit) & 1) == 1;
+                        statusBits.Append(set ? '1' : "<span class='unused'>0</span>");
+                    }
+
                     string explanation =
                         "<ol>" +
-                        $"<li>ISO-TP ID <mark>0x{msg.Id:X3}</mark> (ISO 15765-2)</li>" +
-                        $"<li>Respuesta <mark>0x59</mark> al servicio <mark>0x19</mark> (ISO 14229-1)</li>" +
-                        $"<li>Bytes <span class='b1'>{b1:X2}</span> <span class='b2'>{b2:X2}</span> <span class='b3'>{b3:X2}</span> -> DTC <strong>{dtcCode}</strong></li>" +
-                        $"<li>Estado <span class='status'>{statusByte:X2}</span> (bits no usados en <span class='unused'>gris</span>)</li>" +
+                        $"<li>El identificador CAN <mark>0x{msg.Id:X3}</mark> proviene de la trama ISO-TP que encapsula la respuesta.</li>" +
+                        $"<li>El primer byte es <mark>0x59</mark>; restando 0x40 se identifica el servicio original <mark>0x19</mark> (ReadDTCInformation).</li>" +
+                        $"<li>Los bytes <span class='b1'>{b1:X2}</span> <span class='b2'>{b2:X2}</span> <span class='b3'>{b3:X2}</span> forman 0x{dtcRaw:X6}. " +
+                        $"Los bits 22-23 (=00) señalan la letra <strong>{dtcCode[0]}</strong> y el resto produce {dtcCode.Substring(1)}.</li>" +
+                        $"<li>El estado <span class='status'>{statusByte:X2}</span> = {statusBits}b; los bits en <span class='unused'>gris</span> no están activos.</li>" +
                         "</ol>";
 
                     var info = new DtcInfo(dtcCode, description, status, severity, origin)
