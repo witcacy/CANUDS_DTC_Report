@@ -10,7 +10,7 @@ namespace CANUDS_DTC_Report
 {
     public class UdsInterpreter
     {
-        private static readonly Dictionary<uint, string> EcuMap = new()
+        private static readonly Dictionary<uint, string> EcuMap = new Dictionary<uint, string>()
         {
             { 0x7E8, "ECM (Engine Control Module)" },
             { 0x7EC, "TCM (Transmission Control Module)" },
