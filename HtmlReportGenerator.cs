@@ -20,8 +20,6 @@ namespace CANUDS_DTC_Report
             html.AppendLine("table { border-collapse: collapse; width: 100%; }");
             html.AppendLine("th, td { border: 1px solid #ddd; padding: 8px; }");
             html.AppendLine("th { background-color: #f2f2f2; }");
-            html.AppendLine(".subfunc { background-color: #fff176; }");
-            html.AppendLine(".dtc { background-color: #81d4fa; }");
             html.AppendLine("</style></head><body>");
 
             html.AppendLine("<h1>Reporte de Códigos DTC vía UDS</h1>");
@@ -72,7 +70,8 @@ namespace CANUDS_DTC_Report
                 html.AppendLine("<li>Se identificó el tipo de DTC con los 2 bits más significativos según la tabla: 00 = P, 01 = C, 10 = B, 11 = U.</li>");
                 html.AppendLine($"<li>Número de mensaje: {dtc.MessageNumber}</li>");
                 html.AppendLine($"<li>Bits de tipo decodificados: {dtc.TypeBits}</li>");
-                html.AppendLine("<li>Los bytes resaltados indican la subfunción y el código DTC dentro del mensaje.</li>");
+                html.AppendLine($"<li>ECU que respondió: {dtc.Origin} (ID CAN 0x{dtc.CanId:X3})</li>");
+                html.AppendLine("<li>El fragmento mostrado proviene directamente de la traza TRC.</li>");
                 html.AppendLine("</ul>");
 
                 html.AppendLine("</td>");

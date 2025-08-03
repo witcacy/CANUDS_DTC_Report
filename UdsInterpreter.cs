@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net;
 using CANUDS_DTC_Report.Models;
 using Peak.Can.Uds;
 
@@ -9,6 +10,14 @@ namespace CANUDS_DTC_Report
 {
     public class UdsInterpreter
     {
+        private static readonly Dictionary<uint, string> EcuMap = new()
+        {
+            { 0x7E8, "ECM (Engine Control Module)" },
+            { 0x7EC, "TCM (Transmission Control Module)" },
+            { 0x7EF, "BCM (Body Control Module)" },
+            { 0x7F0, "EPS (Electric Power Steering)" }
+        };
+
         public static List<DtcInfo> ExtractDTCs(List<IsoTpMessage> messages)
         {
             var dtcs = new List<DtcInfo>();
@@ -29,9 +38,9 @@ namespace CANUDS_DTC_Report
                     string description = "Unknown"; // Can map with database if desired
                     string status = "Stored"; // TODO: decode status bits
                     string severity = "Unknown";
-                    string origin = "ECU";
+                    string origin = EcuMap.TryGetValue(msg.Id, out var name) ? name : "Desconocido";
 
-                    string fragment = BuildFragment(msg.Payload, index);
+                    string fragment = string.Join("<br/>", msg.RawLines.Select(WebUtility.HtmlEncode));
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
                     string typeBits = $"{bits} -> {dtcCode[0]}";
@@ -151,16 +160,6 @@ namespace CANUDS_DTC_Report
                          ((raw >> 16) & 0x3F).ToString("X2") +
                          ((raw >> 8) & 0xFF).ToString("X2");
             return dtc;
-        }
-
-        private static string BuildFragment(List<byte> payload, int dtcStartIndex)
-        {
-            var hexBytes = payload.Select(b => b.ToString("X2")).ToArray();
-            if (payload.Count > 1)
-                hexBytes[1] = $"<span class='subfunc'>{hexBytes[1]}</span>";
-            for (int i = 0; i < 3 && dtcStartIndex + i < hexBytes.Length; i++)
-                hexBytes[dtcStartIndex + i] = $"<span class='dtc'>{hexBytes[dtcStartIndex + i]}</span>";
-            return string.Join(" ", hexBytes);
         }
 
         private static string DecodeData(byte[] data)

@@ -25,7 +25,9 @@ namespace CANUDS_DTC_Report
                             for (int i = 1; i <= length; i++)
                                 payload.Add(frame.Data[i]);
 
-                            messages.Add(new IsoTpMessage(frame.Id) { Payload = payload, ExpectedLength = length });
+                            var msg = new IsoTpMessage(frame.Id) { Payload = payload, ExpectedLength = length };
+                            msg.RawLines.Add(frame.RawLine);
+                            messages.Add(msg);
                             break;
                         }
                     case 0x1: // First Frame
@@ -34,6 +36,7 @@ namespace CANUDS_DTC_Report
                             var msg = new IsoTpMessage(frame.Id) { ExpectedLength = length };
                             for (int i = 2; i < frame.Data.Length; i++)
                                 msg.Payload.Add(frame.Data[i]);
+                            msg.RawLines.Add(frame.RawLine);
 
                             currentMessages[frame.Id] = msg;
                             break;
@@ -46,6 +49,7 @@ namespace CANUDS_DTC_Report
                             var msg = currentMessages[frame.Id];
                             for (int i = 1; i < frame.Data.Length; i++)
                                 msg.Payload.Add(frame.Data[i]);
+                            msg.RawLines.Add(frame.RawLine);
 
                             // if message complete, finalize it
                             if (msg.Payload.Count >= msg.ExpectedLength)
