@@ -44,25 +44,40 @@ namespace CANUDS_DTC_Report
                     byte b2 = msg.Payload[index + 1];
                     byte b3 = msg.Payload[index + 2];
                     byte statusByte = msg.Payload[index + 3];
-                    string coloredFragment = $"<span style='color:#d00'>{b1:X2}</span> <span style='color:#0a0'>{b2:X2}</span> <span style='color:#00d'>{b3:X2}</span> <span style='color:#555'>{statusByte:X2}</span>";
 
-                    string fragment = string.Join("<br/>", msg.RawLines.Select(WebUtility.HtmlEncode));
-                    string lineInfo = string.Join(", ", msg.LineNumbers);
+                    // Build a table of all payload bytes highlighting the DTC bytes
+                    var bytesHtml = new StringBuilder();
+                    bytesHtml.Append("<table class='dtc-bytes'><tr>");
+                    for (int i = 0; i < msg.Payload.Count; i++)
+                    {
+                        string cls = "unused";
+                        if (i == index) cls = "b1";
+                        else if (i == index + 1) cls = "b2";
+                        else if (i == index + 2) cls = "b3";
+                        else if (i == index + 3) cls = "status";
+                        bytesHtml.Append($"<td class='{cls}'>{msg.Payload[i]:X2}</td>");
+                    }
+                    bytesHtml.Append("</tr></table>");
+                    string coloredFragment = bytesHtml.ToString();
+
+                    // Preserve spacing of TRC lines
+                    string fragment = string.Join("\n", msg.RawLines.Select(WebUtility.HtmlEncode));
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
                     string typeBits = $"{bits} -> {dtcCode[0]}";
                     string explanation =
-                        $"1) ISO-TP ID 0x{msg.Id:X3} (ISO 15765-2). " +
-                        $"2) Respuesta 0x59 al servicio 0x19 (ISO 14229-1). " +
-                        $"3) Bytes 0x{b1:X2} 0x{b2:X2} 0x{b3:X2} -> DTC {dtcCode} (ISO 14229-1). " +
-                        $"4) Estado 0x{statusByte:X2} interpretado según ISO 14229-1.";
+                        "<ol>" +
+                        $"<li>ISO-TP ID <mark>0x{msg.Id:X3}</mark> (ISO 15765-2)</li>" +
+                        $"<li>Respuesta <mark>0x59</mark> al servicio <mark>0x19</mark> (ISO 14229-1)</li>" +
+                        $"<li>Bytes <span class='b1'>{b1:X2}</span> <span class='b2'>{b2:X2}</span> <span class='b3'>{b3:X2}</span> -> DTC <strong>{dtcCode}</strong></li>" +
+                        $"<li>Estado <span class='status'>{statusByte:X2}</span> (bits no usados en <span class='unused'>gris</span>)</li>" +
+                        "</ol>";
 
                     var info = new DtcInfo(dtcCode, description, status, severity, origin)
                     {
                         SubFunction = subFunction,
                         MessageFragment = fragment,
                         ColoredFragment = coloredFragment,
-                        TrcLines = lineInfo,
                         MessageNumber = msgIndex + 1,
                         TypeBits = typeBits,
                         CanId = msg.Id,
