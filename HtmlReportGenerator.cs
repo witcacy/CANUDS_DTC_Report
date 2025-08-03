@@ -21,7 +21,7 @@ namespace CANUDS_DTC_Report
             html.AppendLine("th, td { border: 1px solid #ddd; padding: 8px; }");
             html.AppendLine("th { background-color: #f2f2f2; }");
             html.AppendLine("pre { margin:0; font-family:monospace; }");
-            html.AppendLine(".dtc-bytes td { border:1px solid #ddd; font-family:monospace; padding:2px 4px; }");
+            html.AppendLine(".dtc-bytes td { border:1px solid #ddd; font-family:monospace; padding:2px; width:2.5em; text-align:center; }");
             html.AppendLine(".dtc-bytes .b1 { background:#fdd; }");
             html.AppendLine(".dtc-bytes .b2 { background:#dfd; }");
             html.AppendLine(".dtc-bytes .b3 { background:#ddf; }");
