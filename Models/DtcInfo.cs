@@ -11,7 +11,6 @@
         public string SubFunction { get; set; }     // Subfunción / subcódigo del servicio UDS
         public string MessageFragment { get; set; } // Líneas sin parsear del TRC
         public string ColoredFragment { get; set; } // Fragmento de bytes del DTC coloreado
-        public string TrcLines { get; set; }        // Número(s) de línea del TRC
         public int MessageNumber { get; set; }      // Número de mensaje ISO-TP donde se encontró
         public string TypeBits { get; set; }        // Bits decodificados que indican el tipo de DTC
         public uint CanId { get; set; }             // ID CAN del ECU que envió el DTC

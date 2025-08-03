@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Net;
 using CANUDS_DTC_Report.Models;
 
 namespace CANUDS_DTC_Report
@@ -21,6 +20,13 @@ namespace CANUDS_DTC_Report
             html.AppendLine("table { border-collapse: collapse; width: 100%; }");
             html.AppendLine("th, td { border: 1px solid #ddd; padding: 8px; }");
             html.AppendLine("th { background-color: #f2f2f2; }");
+            html.AppendLine("pre { margin:0; font-family:monospace; }");
+            html.AppendLine(".dtc-bytes td { border:1px solid #ddd; font-family:monospace; padding:2px 4px; }");
+            html.AppendLine(".dtc-bytes .b1 { background:#fdd; }");
+            html.AppendLine(".dtc-bytes .b2 { background:#dfd; }");
+            html.AppendLine(".dtc-bytes .b3 { background:#ddf; }");
+            html.AppendLine(".dtc-bytes .status { background:#eee; }");
+            html.AppendLine(".dtc-bytes .unused { color:#999; }");
             html.AppendLine("</style></head><body>");
 
             html.AppendLine("<h1>Reporte de Códigos DTC vía UDS</h1>");
@@ -49,7 +55,7 @@ namespace CANUDS_DTC_Report
 
             html.AppendLine("<h2>Códigos DTC</h2>");
             html.AppendLine("<table>");
-            html.AppendLine("<tr><th>DTC</th><th>ID CAN</th><th>Subfunción</th><th>Líneas TRC</th><th>Fragmento TRC</th><th>Fragmento DTC</th><th>Interpretación</th><th>Estado</th><th>Origen</th><th>Explicación (ISO)</th></tr>");
+            html.AppendLine("<tr><th>DTC</th><th>ID CAN</th><th>Subfunción</th><th>Fragmento TRC</th><th>Fragmento DTC</th><th>Paso a paso</th></tr>");
 
             foreach (var dtc in dtcs)
             {
@@ -57,13 +63,9 @@ namespace CANUDS_DTC_Report
                 html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.Code}\" target=\"_blank\">{dtc.Code}</a></td>");
                 html.AppendLine($"<td>0x{dtc.CanId:X3}</td>");
                 html.AppendLine($"<td>{dtc.SubFunction}</td>");
-                html.AppendLine($"<td>{dtc.TrcLines}</td>");
-                html.AppendLine($"<td><code>{dtc.MessageFragment}</code></td>");
-                html.AppendLine($"<td><code>{dtc.ColoredFragment}</code></td>");
-                html.AppendLine($"<td>{dtc.Description}</td>");
-                html.AppendLine($"<td>{dtc.Status}</td>");
-                html.AppendLine($"<td>{dtc.Origin}</td>");
-                html.AppendLine($"<td>{WebUtility.HtmlEncode(dtc.Explanation)}</td>");
+                html.AppendLine($"<td><pre>{dtc.MessageFragment}</pre></td>");
+                html.AppendLine($"<td>{dtc.ColoredFragment}</td>");
+                html.AppendLine($"<td>{dtc.Explanation}</td>");
                 html.AppendLine("</tr>");
             }
 
