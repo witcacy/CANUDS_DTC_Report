@@ -11,9 +11,11 @@ namespace CANUDS_DTC_Report
         public static  List<CanFrame> Parse(string filePath)
         {
             var frames = new List<CanFrame>();
+            int lineNumber = 0;
 
             foreach (var line in File.ReadLines(filePath))
             {
+                lineNumber++;
                 if (!line.Contains("Rx") && !line.Contains("Tx"))
                     continue;
 
@@ -34,7 +36,7 @@ namespace CANUDS_DTC_Report
                     }
 
                     var rawLine = $"0x{id:X3} {string.Join(" ", dataList.ConvertAll(b => b.ToString("X2")))}";
-                    frames.Add(new CanFrame(id, dataList.ToArray(), time, rawLine));
+                    frames.Add(new CanFrame(id, dataList.ToArray(), time, rawLine, lineNumber));
                 }
                 catch
                 {
