@@ -39,25 +39,26 @@
             this.btnLoadTrc.Name = "btnLoadTrc";
             this.btnLoadTrc.Size = new System.Drawing.Size(75, 23);
             this.btnLoadTrc.TabIndex = 0;
-            this.btnLoadTrc.Text = "button1";
+            this.btnLoadTrc.Text = "Load File";
             this.btnLoadTrc.UseVisualStyleBackColor = true;
             this.btnLoadTrc.Click += new System.EventHandler(this.BtnLoadTrc_Click);
             // 
             // btnGenerateReport
             // 
-            this.btnGenerateReport.Location = new System.Drawing.Point(24, 68);
+            this.btnGenerateReport.Location = new System.Drawing.Point(24, 369);
             this.btnGenerateReport.Name = "btnGenerateReport";
             this.btnGenerateReport.Size = new System.Drawing.Size(75, 23);
             this.btnGenerateReport.TabIndex = 1;
-            this.btnGenerateReport.Text = "button2";
+            this.btnGenerateReport.Text = "Generate report";
             this.btnGenerateReport.UseVisualStyleBackColor = true;
             this.btnGenerateReport.Click += new System.EventHandler(this.BtnGenerateReport_Click);
             // 
             // txtOutput
             // 
             this.txtOutput.Location = new System.Drawing.Point(24, 42);
+            this.txtOutput.Multiline = true;
             this.txtOutput.Name = "txtOutput";
-            this.txtOutput.Size = new System.Drawing.Size(100, 20);
+            this.txtOutput.Size = new System.Drawing.Size(764, 307);
             this.txtOutput.TabIndex = 2;
             // 
             // MainForm

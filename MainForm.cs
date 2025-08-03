@@ -43,7 +43,7 @@ namespace CANUDS_DTC_Report
 
             try
             {
-                // Paso 1: Leer y parsear .trc
+           
                 var frames = TrcParser.Parse(trcFilePath);
                 var messages = IsoTpDecoder.Decode(frames);
                 var udsMessages = UdsInterpreter.ClassifyUdsMessages(messages);
@@ -63,7 +63,7 @@ namespace CANUDS_DTC_Report
                 }
                 txtOutput.AppendText($"Analisis: {analysis}{Environment.NewLine}");
 
-                // Paso 2: Guardar HTML
+               
                 var saveDialog = new SaveFileDialog();
                 saveDialog.Filter = "HTML Files (*.html)|*.html";
                 saveDialog.FileName = "Reporte_DTC_CAN_UDS.html";
