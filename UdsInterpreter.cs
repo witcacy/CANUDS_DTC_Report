@@ -31,7 +31,7 @@ namespace CANUDS_DTC_Report
                 string subFunction = msg.Payload.Count > 1 ? msg.Payload[1].ToString("X2") : "";
 
                 int index = 3;
-                while (index + 3 <= msg.Payload.Count)
+                while (index + 3 < msg.Payload.Count)
                 {
                     uint dtcRaw = (uint)((msg.Payload[index] << 16) | (msg.Payload[index + 1] << 8) | msg.Payload[index + 2]);
                     string dtcCode = ConvertToDtcCode(dtcRaw);
@@ -40,7 +40,14 @@ namespace CANUDS_DTC_Report
                     string severity = "Unknown";
                     string origin = EcuMap.TryGetValue(msg.Id, out var name) ? name : "Desconocido";
 
+                    byte b1 = msg.Payload[index];
+                    byte b2 = msg.Payload[index + 1];
+                    byte b3 = msg.Payload[index + 2];
+                    byte statusByte = msg.Payload[index + 3];
+                    string coloredFragment = $"<span style='color:#d00'>{b1:X2}</span> <span style='color:#0a0'>{b2:X2}</span> <span style='color:#00d'>{b3:X2}</span> <span style='color:#555'>{statusByte:X2}</span>";
+
                     string fragment = string.Join("<br/>", msg.RawLines.Select(WebUtility.HtmlEncode));
+                    string lineInfo = string.Join(", ", msg.LineNumbers);
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
                     string typeBits = $"{bits} -> {dtcCode[0]}";
@@ -49,6 +56,8 @@ namespace CANUDS_DTC_Report
                     {
                         SubFunction = subFunction,
                         MessageFragment = fragment,
+                        ColoredFragment = coloredFragment,
+                        TrcLines = lineInfo,
                         MessageNumber = msgIndex + 1,
                         TypeBits = typeBits,
                         CanId = msg.Id

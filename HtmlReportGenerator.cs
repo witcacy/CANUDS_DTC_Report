@@ -48,7 +48,7 @@ namespace CANUDS_DTC_Report
 
             html.AppendLine("<h2>Códigos DTC</h2>");
             html.AppendLine("<table>");
-            html.AppendLine("<tr><th>DTC</th><th>ID CAN</th><th>Subfunción</th><th>Fragmento</th><th>Descripción</th><th>Estado</th><th>Origen</th><th>Explicación Técnica</th></tr>");
+            html.AppendLine("<tr><th>DTC</th><th>ID CAN</th><th>Subfunción</th><th>Líneas TRC</th><th>Fragmento TRC</th><th>Fragmento DTC</th><th>Interpretación</th><th>Estado</th><th>Origen</th></tr>");
 
             foreach (var dtc in dtcs)
             {
@@ -56,25 +56,12 @@ namespace CANUDS_DTC_Report
                 html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.Code}\" target=\"_blank\">{dtc.Code}</a></td>");
                 html.AppendLine($"<td>0x{dtc.CanId:X3}</td>");
                 html.AppendLine($"<td>{dtc.SubFunction}</td>");
+                html.AppendLine($"<td>{dtc.TrcLines}</td>");
                 html.AppendLine($"<td><code>{dtc.MessageFragment}</code></td>");
+                html.AppendLine($"<td><code>{dtc.ColoredFragment}</code></td>");
                 html.AppendLine($"<td>{dtc.Description}</td>");
                 html.AppendLine($"<td>{dtc.Status}</td>");
                 html.AppendLine($"<td>{dtc.Origin}</td>");
-                html.AppendLine("<td>");
-
-                html.AppendLine("<strong>Interpretación:</strong><br/>");
-                html.AppendLine("<ul>");
-                html.AppendLine("<li>Se utilizó el servicio <code>0x19 - ReadDTCInformation</code> del estándar <strong>ISO 14229-1:2013</strong>.</li>");
-                html.AppendLine("<li>El DTC fue extraído de la estructura de respuesta codificada en ISO-TP (ISO 15765-2).</li>");
-                html.AppendLine($"<li>Subfunción utilizada: 0x{dtc.SubFunction}</li>");
-                html.AppendLine("<li>Se identificó el tipo de DTC con los 2 bits más significativos según la tabla: 00 = P, 01 = C, 10 = B, 11 = U.</li>");
-                html.AppendLine($"<li>Número de mensaje: {dtc.MessageNumber}</li>");
-                html.AppendLine($"<li>Bits de tipo decodificados: {dtc.TypeBits}</li>");
-                html.AppendLine($"<li>ECU que respondió: {dtc.Origin} (ID CAN 0x{dtc.CanId:X3})</li>");
-                html.AppendLine("<li>El fragmento mostrado proviene directamente de la traza TRC.</li>");
-                html.AppendLine("</ul>");
-
-                html.AppendLine("</td>");
                 html.AppendLine("</tr>");
             }
 
