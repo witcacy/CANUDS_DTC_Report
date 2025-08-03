@@ -1,0 +1,143 @@
+﻿<h2>Glosario técnico: ISO-TP y UDS</h2>
+
+<p>Esta sección ofrece definiciones claras y contextuales de los términos y campos usados en la interpretación de tramas ISO-TP y servicios UDS según los estándares <strong>ISO 14229-1</strong> y <strong>ISO 15765-2</strong>.</p>
+
+<h3>Campos comunes en tramas ISO-TP</h3>
+<table class='dtc-bytes'>
+    <tr><th>Byte</th><th>Significado</th><th>Descripción</th></tr>
+    <tr>
+        <td><code>10</code></td>
+        <td>First Frame (FF)</td>
+        <td>Indica que se trata de la primera trama de un mensaje largo. Forma parte del protocolo ISO-TP para dividir cargas útiles extensas.</td>
+    </tr>
+    <tr>
+        <td><code>2B</code></td>
+        <td>Longitud total</td>
+        <td>El valor <code>0x2B</code> indica 43 bytes de datos UDS totales en la secuencia.</td>
+    </tr>
+    <tr>
+        <td><code>21 / 22 / …</code></td>
+        <td>Consecutive Frames</td>
+        <td>Las tramas siguientes al <code>10</code> usan <code>2n</code> como encabezado ISO-TP para indicar orden.</td>
+    </tr>
+</table>
+
+<h3>Campos UDS (dentro de la carga útil)</h3>
+<table class='dtc-bytes'>
+    <tr><th>Byte</th><th>Significado</th><th>Normativa</th></tr>
+    <tr>
+        <td><code>59</code></td>
+        <td>Respuesta positiva</td>
+        <td>Indica una respuesta exitosa al servicio <code>0x19</code> (lectura de DTCs). Se obtiene sumando <code>0x40</code> al servicio original.</td>
+    </tr>
+    <tr>
+        <td><code>02</code></td>
+        <td>Subfunción</td>
+        <td>Significa “Read stored DTCs” (leer DTCs almacenados), según <strong>ISO 14229-1, Sección 7.10.2.1</strong>.</td>
+    </tr>
+    <tr>
+        <td><code>FF</code></td>
+        <td>Status Availability Mask</td>
+        <td>Máscara de bits que indica qué flags de estado están presentes en los bytes de cada DTC.</td>
+    </tr>
+</table>
+
+<h3>Codificación del DTC</h3>
+<p>Un código DTC se representa con 3 bytes. El primer byte contiene los 2 bits más significativos que determinan la categoría:</p>
+
+<table class='dtc-bytes'>
+    <tr><th>Bits 22–23</th><th>Letra</th><th>Significado</th></tr>
+    <tr><td><code>00</code></td><td>P</td><td>Powertrain — Motor, transmisión, emisiones</td></tr>
+    <tr><td><code>01</code></td><td>C</td><td>Chassis — Frenos, dirección, suspensión</td></tr>
+    <tr><td><code>10</code></td><td>B</td><td>Body — Climatización, puertas, airbags</td></tr>
+    <tr><td><code>11</code></td><td>U</td><td>Network — Red CAN, LIN, gateways</td></tr>
+</table>
+
+<h3>Status Byte del DTC</h3>
+<p>El cuarto byte (Status Byte) indica el estado actual de cada DTC utilizando una máscara de bits:</p>
+
+<table class='dtc-bytes'>
+    <tr><th>Bit</th><th>Valor</th><th>Significado</th></tr>
+    <tr><td>0</td><td><code>0x01</code></td><td>Prueba fallida esta vez</td></tr>
+    <tr><td>2</td><td><code>0x04</code></td><td>Prueba completada desde borrado</td></tr>
+    <tr><td>3</td><td><code>0x08</code></td><td><strong>DTC almacenado</strong></td></tr>
+    <tr><td>5</td><td><code>0x20</code></td><td><strong>Condición de prueba cumplida</strong></td></tr>
+</table>
+
+<h2>Explicación detallada del DTC P0059</h2>
+<p>Este análisis muestra cómo se interpretó el código DTC <strong>P0059</strong> a partir de una respuesta UDS multitrama codificada con ISO-TP.</p>
+
+<h3>Trama ISO-TP completa (resaltado por byte)</h3>
+<table class='dtc-bytes'>
+    <tr><th>ID</th><th>Byte 0</th><th>Byte 1</th><th>Byte 2</th><th>Byte 3</th><th>Byte 4</th><th>Byte 5</th><th>Byte 6</th><th>Byte 7</th></tr>
+    <tr><td class='highlight'>0x17FE0085</td><td>10</td><td>2B</td><td>59</td><td>02</td><td>FF</td><td class='b1'>00</td><td class='b2'>59</td><td class='b3'>31</td></tr>
+    <tr><td class='highlight'>0x17FE0085</td><td>21</td><td>28</td><td>00</td><td>0B</td><td>20</td><td>28</td><td>00</td><td>23</td></tr>
+    <tr><td class='highlight'>0x17FE0085</td><td>22</td><td>31</td><td>28</td><td>00</td><td>0A</td><td>1E</td><td>28</td><td>00</td></tr>
+    <tr><td class='highlight'>0x17FE0085</td><td>23</td><td>01</td><td>03</td><td>2F</td><td>00</td><td>72</td><td>56</td><td>2F</td></tr>
+    <tr><td class='highlight'>0x17FE0085</td><td>24</td><td>00</td><td>73</td><td>56</td><td>2F</td><td>00</td><td>01</td><td>05</td></tr>
+    <tr><td class='highlight'>0x17FE0085</td><td>25</td><td>2F</td><td>00</td><td>01</td><td>07</td><td>2F</td><td>00</td><td>01</td></tr>
+    <tr><td class='highlight'>0x17FE0085</td><td>26</td><td>57</td><td>2F</td><td>AA</td><td>AA</td><td>AA</td><td>AA</td><td>AA</td></tr>
+</table>
+
+<h3>Desglose del DTC (3 bytes + estado)</h3>
+<table class='dtc-bytes'>
+    <tr><th>MSB</th><th>Middle</th><th>LSB</th><th>Status</th></tr>
+    <tr>
+        <td class='b1'>00</td>
+        <td class='b2'>59</td>
+        <td class='b3'>31</td>
+        <td class='status'>28</td>
+    </tr>
+</table>
+
+<h3>Explicación paso a paso</h3>
+<ol>
+    <li>El identificador CAN <span class='highlight'>0x17FE0085</span> proviene de la trama ISO-TP que encapsula la respuesta.</li>
+    <li>El primer byte del mensaje es <code>0x59</code> → <strong>respuesta positiva</strong> a <code>0x19</code> (servicio ReadDTCInformation) con subfunción <code>0x02</code> (DTC almacenados).</li>
+    <li>Los siguientes tres bytes <code>00 59 31</code> se interpretan como un DTC crudo (raw): <code>0x005931</code>.</li>
+    <li>Bits 22–23 del primer byte (00) indican el tipo P → <strong>P0059</strong></li>
+    <li>El <strong>LSB</strong> es <code>31</code> → contiene los bits menos significativos del código DTC.</li>
+    <li>
+        El byte de estado <code>28</code> indica: <br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<code>00101000</code><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;- Bit 3 activo → El DTC está <strong>almacenado</strong><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;- Bit 5 activo → Condición de prueba cumplida<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;- Otros bits = 0
+    </li>
+</ol>
+
+<h3>Referencia normativa</h3>
+<ul>
+    <li><a href="https://www.iso.org/standard/51612.html" target="_blank">ISO 14229-1:2013 — Unified Diagnostic Services (UDS)</a></li>
+    <li><a href="https://www.iso.org/standard/59844.html" target="_blank">ISO 15765-2 — ISO-TP protocolo de transporte</a></li>
+</ul>
+
+<style>
+    .dtc-bytes td, .dtc-bytes th {
+        border: 1px solid #ccc;
+        padding: 4px;
+        text-align: center;
+        font-family: monospace;
+    }
+
+    .b1 {
+        background-color: #fdd;
+    }
+
+    .b2 {
+        background-color: #dfd;
+    }
+
+    .b3 {
+        background-color: #ddf;
+    }
+
+    .status {
+        background-color: #eee;
+    }
+
+    .highlight {
+        background-color: #ffc;
+        font-weight: bold;
+    }
+</style>

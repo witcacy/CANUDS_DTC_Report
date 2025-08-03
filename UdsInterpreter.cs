@@ -29,14 +29,14 @@ namespace CANUDS_DTC_Report
                     continue;
 
                 string subFunction = msg.Payload.Count > 1 ? msg.Payload[1].ToString("X2") : "";
-
+                int dtcNumber = 0;
                 int index = 3;
                 while (index + 3 < msg.Payload.Count)
                 {
                     uint dtcRaw = (uint)((msg.Payload[index] << 16) | (msg.Payload[index + 1] << 8) | msg.Payload[index + 2]);
                     string dtcCode = ConvertToDtcCode(dtcRaw);
                     string description = "Unknown"; // Can map with database if desired
-                    string status = "Stored"; // TODO: decode status bits
+                    string status = "Stored"; //  decode status bits
                     string severity = "Unknown";
                     string origin = EcuMap.TryGetValue(msg.Id, out var name) ? name : "Desconocido";
 
@@ -46,17 +46,33 @@ namespace CANUDS_DTC_Report
                     byte statusByte = msg.Payload[index + 3];
 
                     // Table with only the DTC bytes
+                    // Table with labeled DTC bytes
                     var bytesHtml = new StringBuilder();
-                    bytesHtml.Append("<table class='dtc-bytes'><tr>");
+
+                    bytesHtml.Append("<table class='dtc-bytes'>");
+                    bytesHtml.Append("<thead><tr>");
+                    bytesHtml.Append("<th>MSB</th>");
+                    bytesHtml.Append("<th>Middle</th>");
+                    bytesHtml.Append("<th>LSB</th>");
+                    bytesHtml.Append("<th>Status</th>");
+                    bytesHtml.Append("</tr></thead>");
+                    bytesHtml.Append("<tbody><tr>");
                     bytesHtml.Append($"<td class='b1'>{b1:X2}</td>");
                     bytesHtml.Append($"<td class='b2'>{b2:X2}</td>");
                     bytesHtml.Append($"<td class='b3'>{b3:X2}</td>");
                     bytesHtml.Append($"<td class='status'>{statusByte:X2}</td>");
-                    bytesHtml.Append("</tr></table>");
+                    bytesHtml.Append("</tr></tbody></table>");
+
                     string coloredFragment = bytesHtml.ToString();
 
+
                     // Preserve spacing of TRC lines
-                    string fragment = string.Join("\n", msg.RawLines.Select(WebUtility.HtmlEncode));
+                    string fragment = new HtmlReportGenerator().GenerateExactColoredTRC(
+    string.Join("\n", msg.RawLines),
+    dtcNumber,  // n-ésimo DTC en la respuesta
+    b1, b2, b3, statusByte
+);
+
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
                     string typeBits = $"{bits} -> {dtcCode[0]}";
@@ -66,7 +82,9 @@ namespace CANUDS_DTC_Report
                     for (int bit = 7; bit >= 0; bit--)
                     {
                         bool set = ((statusByte >> bit) & 1) == 1;
-                        statusBits.Append(set ? '1' : "<span class='unused'>0</span>");
+                        //statusBits.Append(set ? '1' : "<span class='unused'>0</span>");
+                        statusBits.Append(set ? "1" : "<span class='unused'>0</span>");
+
                     }
 
                     string explanation =
@@ -92,6 +110,7 @@ namespace CANUDS_DTC_Report
                     dtcs.Add(info);
 
                     index += 4; // 3 bytes DTC + 1 byte status availability mask
+                    dtcNumber++; 
                 }
             }
 

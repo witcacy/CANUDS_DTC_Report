@@ -1,14 +1,142 @@
+using CANUDS_DTC_Report.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CANUDS_DTC_Report.Models;
+using System.Text.RegularExpressions;
 
 namespace CANUDS_DTC_Report
 {
     public class HtmlReportGenerator
     {
+        public string GenerateExactColoredTRC(string rawFragment, int dtcIndex, byte b1, byte b2, byte b3, byte statusByte)
+        {
+            var sb = new StringBuilder();
+            var lines = rawFragment.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var stream = new List<(string id, byte[] data)>();
+            var payload = new List<byte>();
+
+            foreach (var line in lines)
+            {
+                var match = Regex.Match(line, @"^(0x[0-9A-Fa-f]+)\s+((?:[0-9A-Fa-f]{2}\s*)+)$");
+                if (!match.Success) continue;
+
+                string id = match.Groups[1].Value;
+                byte[] bytes = match.Groups[2].Value
+                    .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => Convert.ToByte(x, 16))
+                    .ToArray();
+
+                stream.Add((id, bytes));
+                payload.AddRange(bytes);
+            }
+
+            // ISO-TP UDS HEADER: 0x59, subfunc, status mask → 3 bytes
+            int udsHeaderLength = 3;
+            int payloadOffset = udsHeaderLength + (dtcIndex * 4);
+
+            // Colorear solo los bytes del DTC actual
+            var highlightMap = new Dictionary<int, (string color, string label)>
+    {
+        { payloadOffset,     ("#fdd", "MSB") },
+        { payloadOffset + 1, ("#dfd", "Middle") },
+        { payloadOffset + 2, ("#ddf", "LSB") },
+        { payloadOffset + 3, ("#eee", "Status") }
+    };
+
+            // Tabla HTML con coloreo
+            sb.AppendLine("<table border='1' cellspacing='0' cellpadding='4' style='font-family:monospace;'>");
+            sb.AppendLine("<thead><tr><th>ID CAN</th><th>Bytes</th></tr></thead>");
+            sb.AppendLine("<tbody>");
+
+            int logicalPayloadIndex = 0;
+            int globalByteIndex = 0;
+
+            foreach (var (id, bytes) in stream)
+            {
+                sb.Append("<tr>");
+                sb.AppendFormat("<td style='background:#ffc;font-weight:bold'>{0}</td>", id);
+                sb.Append("<td>");
+
+                foreach (var b in bytes)
+                {
+                    string hex = b.ToString("X2");
+
+                    if (globalByteIndex >= udsHeaderLength)
+                    {
+                        if (highlightMap.TryGetValue(logicalPayloadIndex, out var hl))
+                        {
+                            sb.AppendFormat("<span style='background:{0}' title='{1}'>{2}</span> ", hl.color, hl.label, hex);
+                        }
+                        else
+                        {
+                            sb.Append(hex + " ");
+                        }
+                        logicalPayloadIndex++;
+                    }
+                    else
+                    {
+                        sb.Append(hex + " ");
+                    }
+
+                    globalByteIndex++;
+                }
+
+                sb.AppendLine("</td></tr>");
+            }
+
+            sb.AppendLine("</tbody></table>");
+            return sb.ToString();
+        }
+
+
+        public string GenerateColoredHtmlTable(string input)
+        {
+            var lines = input.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var sb = new StringBuilder();
+
+            // HTML header
+            sb.AppendLine("<table class='dtc-table'>");
+            sb.AppendLine("<thead><tr><th>ID CAN</th><th>Bytes</th></tr></thead>");
+            sb.AppendLine("<tbody>");
+
+            // Valores que debemos colorear según tabla
+            var highlightValues = new Dictionary<string, string>
+        {
+            {"00", "b1"},
+            {"59", "b2"},
+            {"31", "b3"},
+            {"28", "status"}
+        };
+
+            foreach (var line in lines)
+            {
+                var match = Regex.Match(line, @"^(0x[0-9A-Fa-f]+)\s((?:[0-9A-Fa-f]{2}\s?)+)$");
+                if (!match.Success) continue;
+
+                string id = match.Groups[1].Value;
+                string[] bytes = match.Groups[2].Value.Trim().Split(' ');
+
+                sb.AppendLine("<tr>");
+                sb.AppendFormat("<td>{0}</td>", id);
+                sb.Append("<td>");
+
+                foreach (var b in bytes)
+                {
+                    if (highlightValues.TryGetValue(b, out var cssClass))
+                        sb.AppendFormat("<span class='{0}'>{1}</span> ", cssClass, b);
+                    else
+                        sb.AppendFormat("{0} ", b);
+                }
+
+                sb.AppendLine("</td></tr>");
+            }
+
+            sb.AppendLine("</tbody></table>");
+            return sb.ToString();
+        }
         public void GenerateReport(List<DtcInfo> dtcs, List<UdsMessageInfo> udsMessages, List<EcuInfo> ecuInfos, string analysis, string outputPath)
         {
             var html = new StringBuilder();
@@ -64,6 +192,7 @@ namespace CANUDS_DTC_Report
                 html.AppendLine($"<td>0x{dtc.CanId:X3}</td>");
                 html.AppendLine($"<td>{dtc.SubFunction}</td>");
                 html.AppendLine($"<td><pre>{dtc.MessageFragment}</pre></td>");
+
                 html.AppendLine($"<td>{dtc.ColoredFragment}</td>");
                 html.AppendLine($"<td>{dtc.Explanation}</td>");
                 html.AppendLine("</tr>");

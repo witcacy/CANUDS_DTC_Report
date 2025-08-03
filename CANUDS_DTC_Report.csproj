@@ -95,6 +95,8 @@
     <Content Include="DTCREAD.trc" />
     <Content Include="dtc_analysis.txt" />
     <Content Include="ECUINF.trc" />
+    <Content Include="Reporte_DTC_CAN_Last_Report.html" />
+    <Content Include="Report_Hader_Step_by_Step.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
