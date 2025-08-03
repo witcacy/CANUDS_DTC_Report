@@ -51,6 +51,11 @@ namespace CANUDS_DTC_Report
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
                     string typeBits = $"{bits} -> {dtcCode[0]}";
+                    string explanation =
+                        $"1) ISO-TP ID 0x{msg.Id:X3} (ISO 15765-2). " +
+                        $"2) Respuesta 0x59 al servicio 0x19 (ISO 14229-1). " +
+                        $"3) Bytes 0x{b1:X2} 0x{b2:X2} 0x{b3:X2} -> DTC {dtcCode} (ISO 14229-1). " +
+                        $"4) Estado 0x{statusByte:X2} interpretado según ISO 14229-1.";
 
                     var info = new DtcInfo(dtcCode, description, status, severity, origin)
                     {
@@ -60,7 +65,8 @@ namespace CANUDS_DTC_Report
                         TrcLines = lineInfo,
                         MessageNumber = msgIndex + 1,
                         TypeBits = typeBits,
-                        CanId = msg.Id
+                        CanId = msg.Id,
+                        Explanation = explanation
                     };
 
                     dtcs.Add(info);
