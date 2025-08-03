@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Net;
 using CANUDS_DTC_Report.Models;
 
 namespace CANUDS_DTC_Report
@@ -48,7 +49,7 @@ namespace CANUDS_DTC_Report
 
             html.AppendLine("<h2>Códigos DTC</h2>");
             html.AppendLine("<table>");
-            html.AppendLine("<tr><th>DTC</th><th>ID CAN</th><th>Subfunción</th><th>Líneas TRC</th><th>Fragmento TRC</th><th>Fragmento DTC</th><th>Interpretación</th><th>Estado</th><th>Origen</th></tr>");
+            html.AppendLine("<tr><th>DTC</th><th>ID CAN</th><th>Subfunción</th><th>Líneas TRC</th><th>Fragmento TRC</th><th>Fragmento DTC</th><th>Interpretación</th><th>Estado</th><th>Origen</th><th>Explicación (ISO)</th></tr>");
 
             foreach (var dtc in dtcs)
             {
@@ -62,6 +63,7 @@ namespace CANUDS_DTC_Report
                 html.AppendLine($"<td>{dtc.Description}</td>");
                 html.AppendLine($"<td>{dtc.Status}</td>");
                 html.AppendLine($"<td>{dtc.Origin}</td>");
+                html.AppendLine($"<td>{WebUtility.HtmlEncode(dtc.Explanation)}</td>");
                 html.AppendLine("</tr>");
             }
 

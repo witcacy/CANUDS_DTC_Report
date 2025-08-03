@@ -7,6 +7,7 @@
         public string Status { get; set; }          // Ejemplo: "Stored/Active"
         public string Severity { get; set; }        // Ejemplo: "High"
         public string Origin { get; set; }          // Ejemplo: "ECM"
+        public string Explanation { get; set; }    // Pasos e ISO que justifican el hallazgo
         public string SubFunction { get; set; }     // Subfunción / subcódigo del servicio UDS
         public string MessageFragment { get; set; } // Líneas sin parsear del TRC
         public string ColoredFragment { get; set; } // Fragmento de bytes del DTC coloreado
