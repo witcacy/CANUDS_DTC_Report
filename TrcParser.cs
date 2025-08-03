@@ -33,7 +33,8 @@ namespace CANUDS_DTC_Report
                             dataList.Add(b);
                     }
 
-                    frames.Add(new CanFrame(id, dataList.ToArray(), time));
+                    var rawLine = $"0x{id:X3} {string.Join(" ", dataList.ConvertAll(b => b.ToString("X2")))}";
+                    frames.Add(new CanFrame(id, dataList.ToArray(), time, rawLine));
                 }
                 catch
                 {
