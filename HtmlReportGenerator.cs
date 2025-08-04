@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using CANUDS_DTC_Report.Models;
 
 namespace CANUDS_DTC_Report
@@ -27,6 +28,11 @@ namespace CANUDS_DTC_Report
             html.AppendLine(".dtc-bytes .b3 { background:#ddf; }");
             html.AppendLine(".dtc-bytes .status { background:#eee; }");
             html.AppendLine(".dtc-bytes .unused { color:#999; }");
+            // Estilos adicionales para resaltar bytes directamente en el fragmento TRC
+            html.AppendLine(".b1 { background:#fdd; }");
+            html.AppendLine(".b2 { background:#dfd; }");
+            html.AppendLine(".b3 { background:#ddf; }");
+            html.AppendLine(".status { background:#eee; }");
             html.AppendLine("</style></head><body>");
 
             html.AppendLine("<h1>Reporte de Códigos DTC vía UDS</h1>");
@@ -117,6 +123,36 @@ namespace CANUDS_DTC_Report
             html.AppendLine("</body></html>");
 
             File.WriteAllText(outputPath, html.ToString(), Encoding.UTF8);
+        }
+
+        public string GenerateExactColoredTRC(string rawFragment, int dtcIndex, byte b1, byte b2, byte b3, byte statusByte)
+        {
+            // Procesar de atrás hacia adelante para que las inserciones de HTML no alteren
+            // los índices de bytes aún no procesados.
+            string result = rawFragment;
+            result = PlacebyteInFragmentoTRC(result, dtcIndex + 3, statusByte, "status");
+            result = PlacebyteInFragmentoTRC(result, dtcIndex + 2, b3, "b3");
+            result = PlacebyteInFragmentoTRC(result, dtcIndex + 1, b2, "b2");
+            result = PlacebyteInFragmentoTRC(result, dtcIndex, b1, "b1");
+            return result;
+        }
+
+        private string PlacebyteInFragmentoTRC(string fragment, int byteIndex, byte value, string cssClass)
+        {
+            var regex = new Regex(@"\b[0-9A-Fa-f]{2}\b");
+            var matches = regex.Matches(fragment);
+            if (byteIndex >= matches.Count)
+                return fragment;
+
+            var match = matches[byteIndex];
+            if (!string.Equals(match.Value, value.ToString("X2"), StringComparison.OrdinalIgnoreCase))
+                return fragment;
+
+            var sb = new StringBuilder();
+            sb.Append(fragment.Substring(0, match.Index));
+            sb.Append($"<span class='{cssClass}'>{match.Value}</span>");
+            sb.Append(fragment.Substring(match.Index + match.Length));
+            return sb.ToString();
         }
     }
 }

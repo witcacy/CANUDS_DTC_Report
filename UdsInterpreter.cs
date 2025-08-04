@@ -21,6 +21,7 @@ namespace CANUDS_DTC_Report
         public static List<DtcInfo> ExtractDTCs(List<IsoTpMessage> messages)
         {
             var dtcs = new List<DtcInfo>();
+            var htmlHelper = new HtmlReportGenerator();
 
             for (int msgIndex = 0; msgIndex < messages.Count; msgIndex++)
             {
@@ -57,6 +58,7 @@ namespace CANUDS_DTC_Report
 
                     // Preserve spacing of TRC lines
                     string fragment = string.Join("\n", msg.RawLines.Select(WebUtility.HtmlEncode));
+                    string fragmentColored = htmlHelper.GenerateExactColoredTRC(fragment, index, b1, b2, b3, statusByte);
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
                     string typeBits = $"{bits} -> {dtcCode[0]}";
@@ -81,7 +83,8 @@ namespace CANUDS_DTC_Report
                     var info = new DtcInfo(dtcCode, description, status, severity, origin)
                     {
                         SubFunction = subFunction,
-                        MessageFragment = fragment,
+                        // MessageFragment = fragment, // Fragmento original sin colorear
+                        MessageFragment = fragmentColored,
                         ColoredFragment = coloredFragment,
                         MessageNumber = msgIndex + 1,
                         TypeBits = typeBits,
