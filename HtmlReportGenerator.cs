@@ -34,24 +34,26 @@ namespace CANUDS_DTC_Report
             }
 
             // ISO-TP UDS HEADER: 0x59, subfunc, status mask → 3 bytes
-            int udsHeaderLength = 3;
-            int payloadOffset = udsHeaderLength + (dtcIndex * 4);
+            //int udsHeaderLength = 3;
+            //int payloadOffset = udsHeaderLength + (dtcIndex * 4);
 
             // Colorear solo los bytes del DTC actual
-            var highlightMap = new Dictionary<int, (string color, string label)>
-    {
-        { payloadOffset,     ("#fdd", "MSB") },
-        { payloadOffset + 1, ("#dfd", "Middle") },
-        { payloadOffset + 2, ("#ddf", "LSB") },
-        { payloadOffset + 3, ("#eee", "Status") }
-    };
+            //var highlightMap = new Dictionary<int, (string color, string label)>
+            //{
+            //    { payloadOffset,     ("#fdd", "MSB") },
+            //    { payloadOffset + 1, ("#dfd", "Middle") },
+            //    { payloadOffset + 2, ("#ddf", "LSB") },
+            //    { payloadOffset + 3, ("#eee", "Status") }
+            //};
+
+            var highlightMap = PlacebyteInFragmentoTRC(payload, dtcIndex, b1, b2, b3, statusByte);
 
             // Tabla HTML con coloreo
             sb.AppendLine("<table border='1' cellspacing='0' cellpadding='4' style='font-family:monospace;'>");
             sb.AppendLine("<thead><tr><th>ID CAN</th><th>Bytes</th></tr></thead>");
             sb.AppendLine("<tbody>");
 
-            int logicalPayloadIndex = 0;
+            //int logicalPayloadIndex = 0;
             int globalByteIndex = 0;
 
             foreach (var (id, bytes) in stream)
@@ -64,17 +66,26 @@ namespace CANUDS_DTC_Report
                 {
                     string hex = b.ToString("X2");
 
-                    if (globalByteIndex >= udsHeaderLength)
+                    //if (globalByteIndex >= udsHeaderLength)
+                    //{
+                    //    if (highlightMap.TryGetValue(logicalPayloadIndex, out var hl))
+                    //    {
+                    //        sb.AppendFormat("<span style='background:{0}' title='{1}'>{2}</span> ", hl.color, hl.label, hex);
+                    //    }
+                    //    else
+                    //    {
+                    //        sb.Append(hex + " ");
+                    //    }
+                    //    logicalPayloadIndex++;
+                    //}
+                    //else
+                    //{
+                    //    sb.Append(hex + " ");
+                    //}
+
+                    if (highlightMap.TryGetValue(globalByteIndex, out var hl))
                     {
-                        if (highlightMap.TryGetValue(logicalPayloadIndex, out var hl))
-                        {
-                            sb.AppendFormat("<span style='background:{0}' title='{1}'>{2}</span> ", hl.color, hl.label, hex);
-                        }
-                        else
-                        {
-                            sb.Append(hex + " ");
-                        }
-                        logicalPayloadIndex++;
+                        sb.AppendFormat("<span style='background:{0}' title='{1}'>{2}</span> ", hl.color, hl.label, hex);
                     }
                     else
                     {
@@ -88,6 +99,41 @@ namespace CANUDS_DTC_Report
             }
 
             sb.AppendLine("</tbody></table>");
+
+            Dictionary<int, (string color, string label)> PlacebyteInFragmentoTRC(List<byte> allBytes, int occurrenceIndex, byte pb1, byte pb2, byte pb3, byte status)
+            {
+                var sequence = new byte[] { pb1, pb2, pb3, status };
+                int found = 0;
+                for (int i = 0; i <= allBytes.Count - sequence.Length; i++)
+                {
+                    bool match = true;
+                    for (int j = 0; j < sequence.Length; j++)
+                    {
+                        if (allBytes[i + j] != sequence[j])
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (match)
+                    {
+                        if (found == occurrenceIndex)
+                        {
+                            return new Dictionary<int, (string color, string label)>
+                            {
+                                { i,     ("#fdd", "MSB") },
+                                { i + 1, ("#dfd", "Middle") },
+                                { i + 2, ("#ddf", "LSB") },
+                                { i + 3, ("#eee", "Status") }
+                            };
+                        }
+                        found++;
+                        i += sequence.Length - 1;
+                    }
+                }
+                return new Dictionary<int, (string color, string label)>();
+            }
+
             return sb.ToString();
         }
 
