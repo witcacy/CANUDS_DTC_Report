@@ -144,7 +144,7 @@ namespace CANUDS_DTC_Report
             var sb = new StringBuilder();
 
             // HTML header
-            sb.AppendLine("<table class='dtc-table'>");
+            sb.AppendLine("<table class='dtc-bytes'>");
             sb.AppendLine("<thead><tr><th>ID CAN</th><th>Bytes</th></tr></thead>");
             sb.AppendLine("<tbody>");
 
@@ -196,15 +196,22 @@ namespace CANUDS_DTC_Report
             html.AppendLine("th { background-color: #f2f2f2; }");
             html.AppendLine("pre { margin:0; font-family:monospace; }");
             html.AppendLine(".dtc-bytes td { border:1px solid #ddd; font-family:monospace; padding:2px; width:2.5em; text-align:center; }");
-            html.AppendLine(".dtc-bytes .b1 { background:#fdd; }");
-            html.AppendLine(".dtc-bytes .b2 { background:#dfd; }");
-            html.AppendLine(".dtc-bytes .b3 { background:#ddf; }");
-            html.AppendLine(".dtc-bytes .status { background:#eee; }");
-            html.AppendLine(".dtc-bytes .unused { color:#999; }");
+            html.AppendLine(".b1 { background:#fdd; }");
+            html.AppendLine(".b2 { background:#dfd; }");
+            html.AppendLine(".b3 { background:#ddf; }");
+            html.AppendLine(".status { background:#eee; }");
+            html.AppendLine(".unused { color:#999; }");
             html.AppendLine("</style></head><body>");
 
             html.AppendLine("<h1>Reporte de Códigos DTC vía UDS</h1>");
             html.AppendLine("<p>Este reporte fue generado automáticamente interpretando respuestas UDS conforme a ISO 14229-1 y formato ISO-TP.</p>");
+
+            var headerPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Report_Hader_Step_by_Step.html");
+            if (File.Exists(headerPath))
+            {
+                html.AppendLine(File.ReadAllText(headerPath));
+            }
+
             html.AppendLine($"<p>Total de mensajes UDS analizados: {udsMessages.Count}</p>");
             html.AppendLine("<h2>Información de ECU</h2>");
             if (ecuInfos.Count == 0)
