@@ -1,0 +1,53 @@
+﻿La imagen muestra un escáner automotriz Autel (marca de diagnóstico profesional), en específico un lector de códigos de falla (DTCs) que se encuentra conectado a un vehículo de la marca Audi, como se indica en la parte superior izquierda del display ("Info: Audi").
+
+📋 Información del lector DTC (Autel)
+Marca: Autel
+
+Tipo de herramienta: Herramienta de diagnóstico automotriz profesional
+
+Pantalla: Táctil a color
+
+Conexión OBDII: Visible por el conector rojo en la parte superior
+
+Funcionalidad visible:
+
+Lectura de códigos
+
+Borrado de códigos
+
+Reporte a la nube
+
+Congelamiento de datos (Freeze Frame)
+
+Búsqueda y consulta de manual de servicio
+
+📟 Códigos de falla DTC detectados
+Código	Estado	Descripción
+B200004	Passive/Sporadic	Ctrl. module faulty
+B200096	Passive/Sporadic	Ctrl. module faulty
+U112100	Active/static	Data bus message missing
+B200045	Active/static	Ctrl. module faulty
+
+Interpretación:
+B200004 / B200096 / B200045: Todos indican "Control module faulty", lo que significa que hay errores intermitentes (pasivos) o permanentes (activos) en uno o más módulos de control del vehículo.
+
+U112100: Señala que hay mensajes ausentes en el bus de datos, lo cual implica posibles problemas de comunicación CAN entre módulos electrónicos.
+
+🧠 ¿Qué significa cada tipo de estado?
+Passive/Sporadic: Fallos que ocurrieron en algún momento pero no están presentes ahora. Pueden ser intermitentes.
+
+Active/static: Fallos persistentes, detectados actualmente por la ECU.
+
+⚙️ Sistema afectado
+Los códigos sugieren problemas en el sistema de comunicación entre módulos (CAN Bus), o en uno o más módulos de control electrónicos (ECUs).
+
+🔧 Recomendaciones:
+Verificar conexión de módulos (especialmente conectores y tierra).
+
+Revisar alimentación de ECUs.
+
+Inspeccionar el bus CAN para ver si hay pérdida de comunicación o líneas en corto.
+
+Verificar si el módulo afectado puede actualizarse o necesita reemplazo.
+
+¿Quieres que investigue a qué módulos pertenecen específicamente esos códigos para Audi o que generemos un flujo de diagnóstico basado en estos errores?

@@ -1,85 +1,44 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+#####################################
+# Visual Studio 2022 - Basura que no queremos
+#####################################
 
-# Virtual environment
-.env/
-.venv/
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+# Carpeta de solución temporales
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-# VSCode settings
-.vscode/
-.code-workspace
+# Archivos de compilación
+bin/
+obj/
+Debug/
+Release/
 
-# PyCharm settings
-.idea/
-
-# Logs
+# Artifacts
+*.exe
+*.dll
+*.pdb
+*.cache
 *.log
 
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints
+# Design-time only
+*.csproj.FileListAbsolute.txt
+*.csproj.GenerateResource.cache
+*.csprojAssemblyReference.cache
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# Auto-generated cache files
+*.dbmdl
 
-# Pytest
-.cache/
+# Otros
+*.tmp
 
-# Coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
+#####################################
+# Archivos que **SÍ queremos**
+# No hace falta incluirlos explícitamente, ¡pero NO los ignores!
+#####################################
 
-# Environments
-.env
-*.env
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# poetry
-poetry.lock
-
-# Unit test / coverage reports
-.junit/
-
-# Local test result folders
-test-results/
-
-# Datasets or large files
-*.csv
-*.tsv
-*.h5
-*.sqlite
-*.db
-*.zip
-*.tar.gz
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
-
-# Mac OS
-.DS_Store
-
-# Windows
-Thumbs.db
-ehthumbs.db
+# Esto está bien: Git por default trackea todo excepto lo ignorado.
+# Así que dejá que .cs, .csproj, .resx, .config, .trc, .txt, .html, etc. entren naturalmente
+/.gitignore
+/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
