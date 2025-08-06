@@ -97,6 +97,9 @@
     <Content Include="ECUINF.trc" />
     <Content Include="Reporte_DTC_CAN_Last_Report.html" />
     <Content Include="Report_Hader_Step_by_Step.html" />
+    <Content Include="IMAGE_DTC_EPLANATION.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

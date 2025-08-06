@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.IO;
+using System.Text.RegularExpressions;
 using CANUDS_DTC_Report.Models;
 using Peak.Can.Uds;
 
@@ -17,6 +19,33 @@ namespace CANUDS_DTC_Report
             { 0x7EF, "BCM (Body Control Module)" },
             { 0x7F0, "EPS (Electric Power Steering)" }
         };
+
+        private static readonly Dictionary<string, string> DtcDescriptions = LoadDtcDescriptions();
+
+        private static Dictionary<string, string> LoadDtcDescriptions()
+        {
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "IMAGE_DTC_EPLANATION.txt");
+                if (File.Exists(path))
+                {
+                    foreach (var line in File.ReadLines(path))
+                    {
+                        var match = Regex.Match(line, @"^(?<code>[A-Z][0-9A-Fa-f]{6})\s+\S+\s+(?<desc>.+)$");
+                        if (match.Success)
+                        {
+                            dict[match.Groups["code"].Value] = match.Groups["desc"].Value.Trim();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Swallow exceptions; absence of description file should not break parsing
+            }
+            return dict;
+        }
 
         public static List<DtcInfo> ExtractDTCs(List<IsoTpMessage> messages)
         {
@@ -35,7 +64,7 @@ namespace CANUDS_DTC_Report
                 {
                     uint dtcRaw = (uint)((msg.Payload[index] << 16) | (msg.Payload[index + 1] << 8) | msg.Payload[index + 2]);
                     string dtcCode = ConvertToDtcCode(dtcRaw);
-                    string description = "Unknown"; // Can map with database if desired
+                    string description = DtcDescriptions.TryGetValue(dtcCode, out var desc) ? desc : "Unknown";
                     string status = "Stored"; //  decode status bits
                     string severity = "Unknown";
                     string origin = EcuMap.TryGetValue(msg.Id, out var name) ? name : "Desconocido";
@@ -212,7 +241,8 @@ namespace CANUDS_DTC_Report
             int firstNibble = (int)((raw & 0xC00000) >> 22);
             string dtc = dtcLetters[firstNibble] +
                          ((raw >> 16) & 0x3F).ToString("X2") +
-                         ((raw >> 8) & 0xFF).ToString("X2");
+                         ((raw >> 8) & 0xFF).ToString("X2") +
+                         (raw & 0xFF).ToString("X2");
             return dtc;
         }
 
