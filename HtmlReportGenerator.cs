@@ -48,59 +48,44 @@ namespace CANUDS_DTC_Report
 
             var highlightMap = PlacebyteInFragmentoTRC(payload, dtcIndex, b1, b2, b3, statusByte);
 
-            // Tabla HTML con coloreo
-            sb.AppendLine("<table border='1' cellspacing='0' cellpadding='4' style='font-family:monospace;'>");
-            sb.AppendLine("<thead><tr><th>ID CAN</th><th>Bytes</th></tr></thead>");
+            // Tabla HTML con coloreo donde cada byte es una columna individual
+            int maxBytes = stream.Max(s => s.data.Length);
+            sb.AppendLine("<table class='dtc-bytes'>");
+            sb.Append("<thead><tr><th>ID CAN</th>");
+            for (int i = 0; i < maxBytes; i++)
+                sb.Append("<th></th>");
+            sb.AppendLine("</tr></thead>");
             sb.AppendLine("<tbody>");
 
-            //int logicalPayloadIndex = 0;
             int globalByteIndex = 0;
 
             foreach (var (id, bytes) in stream)
             {
                 sb.Append("<tr>");
                 sb.AppendFormat("<td style='background:#ffc;font-weight:bold'>{0}</td>", id);
-                sb.Append("<td>");
 
                 foreach (var b in bytes)
                 {
                     string hex = b.ToString("X2");
 
-                    //if (globalByteIndex >= udsHeaderLength)
-                    //{
-                    //    if (highlightMap.TryGetValue(logicalPayloadIndex, out var hl))
-                    //    {
-                    //        sb.AppendFormat("<span style='background:{0}' title='{1}'>{2}</span> ", hl.color, hl.label, hex);
-                    //    }
-                    //    else
-                    //    {
-                    //        sb.Append(hex + " ");
-                    //    }
-                    //    logicalPayloadIndex++;
-                    //}
-                    //else
-                    //{
-                    //    sb.Append(hex + " ");
-                    //}
-
                     if (highlightMap.TryGetValue(globalByteIndex, out var hl))
                     {
-                        sb.AppendFormat("<span style='background:{0}' title='{1}'>{2}</span> ", hl.color, hl.label, hex);
+                        sb.AppendFormat("<td class='{0}' title='{1}'>{2}</td>", hl.cssClass, hl.label, hex);
                     }
                     else
                     {
-                        sb.Append(hex + " ");
+                        sb.AppendFormat("<td>{0}</td>", hex);
                     }
 
                     globalByteIndex++;
                 }
 
-                sb.AppendLine("</td></tr>");
+                sb.AppendLine("</tr>");
             }
 
             sb.AppendLine("</tbody></table>");
 
-            Dictionary<int, (string color, string label)> PlacebyteInFragmentoTRC(List<byte> allBytes, int occurrenceIndex, byte pb1, byte pb2, byte pb3, byte status)
+            Dictionary<int, (string cssClass, string label)> PlacebyteInFragmentoTRC(List<byte> allBytes, int occurrenceIndex, byte pb1, byte pb2, byte pb3, byte status)
             {
                 var sequence = new byte[] { pb1, pb2, pb3, status };
                 int found = 0;
@@ -119,19 +104,19 @@ namespace CANUDS_DTC_Report
                     {
                         if (found == occurrenceIndex)
                         {
-                            return new Dictionary<int, (string color, string label)>
+                            return new Dictionary<int, (string cssClass, string label)>
                             {
-                                { i,     ("#fdd", "MSB") },
-                                { i + 1, ("#dfd", "Middle") },
-                                { i + 2, ("#ddf", "LSB") },
-                                { i + 3, ("#eee", "Status") }
+                                { i,     ("b1", "MSB") },
+                                { i + 1, ("b2", "Middle") },
+                                { i + 2, ("b3", "LSB") },
+                                { i + 3, ("status", "Status") }
                             };
                         }
                         found++;
                         i += sequence.Length - 1;
                     }
                 }
-                return new Dictionary<int, (string color, string label)>();
+                return new Dictionary<int, (string cssClass, string label)>();
             }
 
             return sb.ToString();
@@ -243,7 +228,7 @@ namespace CANUDS_DTC_Report
                 html.AppendLine("<tr>");
                 html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.Code}\" target=\"_blank\">{dtc.Code}</a></td>");
                 html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.LCode}\" target=\"_blank\">{dtc.LCode}</a></td>");
-                html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.Code}\" target=\"_blank\">{dtc.ObdProtocol}</a></td>");
+                html.AppendLine($"<td>{dtc.ObdProtocol}</td>");
                 html.AppendLine($"<td>{dtc.Description}</td>");
                 html.AppendLine($"<td>0x{dtc.CanId:X3}</td>");
                 html.AppendLine($"<td>{dtc.SubFunction}</td>");
