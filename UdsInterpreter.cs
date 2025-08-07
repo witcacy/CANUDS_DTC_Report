@@ -76,14 +76,25 @@ namespace CANUDS_DTC_Report
                     string severity = "Unknown";
                     string origin = EcuMap.TryGetValue(msg.Id, out var name) ? name : "Desconocido";
 
-                    string obdProtocol = dtcCode[0] switch
+                    string obdProtocol;
+                    switch (dtcCode[0])
                     {
-                        'P' => "P (Powertrain)",
-                        'C' => "C (Chassis)",
-                        'B' => "B (Body)",
-                        'U' => "U (Network)",
-                        _ => "Unknown"
-                    };
+                        case 'P':
+                            obdProtocol = "P (Powertrain)";
+                            break;
+                        case 'C':
+                            obdProtocol = "C (Chassis)";
+                            break;
+                        case 'B':
+                            obdProtocol = "B (Body)";
+                            break;
+                        case 'U':
+                            obdProtocol = "U (Network)";
+                            break;
+                        default:
+                            obdProtocol = "Unknown";
+                            break;
+                    }
 
                     var bytesHtml = new StringBuilder();
                     bytesHtml.Append("<table class='dtc-bytes'>");
