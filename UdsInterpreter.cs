@@ -70,10 +70,20 @@ namespace CANUDS_DTC_Report
 
                     uint dtcRaw = (uint)((b1 << 16) | (b2 << 8) | b3);
                     string dtcCode = ConvertToFullDtcCode(dtcRaw);
+                    string lCode = $"L{dtcRaw:X6}";
                     string description = "Unknown"; // Simplificado sin diccionario
                     string status = DecodeStatusFlags(statusByte);
                     string severity = "Unknown";
                     string origin = EcuMap.TryGetValue(msg.Id, out var name) ? name : "Desconocido";
+
+                    string obdProtocol = dtcCode[0] switch
+                    {
+                        'P' => "P (Powertrain)",
+                        'C' => "C (Chassis)",
+                        'B' => "B (Body)",
+                        'U' => "U (Network)",
+                        _ => "Unknown"
+                    };
 
                     var bytesHtml = new StringBuilder();
                     bytesHtml.Append("<table class='dtc-bytes'>");
@@ -121,7 +131,9 @@ namespace CANUDS_DTC_Report
                         MessageNumber = msgIndex + 1,
                         TypeBits = typeBits,
                         CanId = msg.Id,
-                        Explanation = explanation
+                        Explanation = explanation,
+                        LCode = lCode,
+                        ObdProtocol = obdProtocol
                     };
 
                     dtcs.Add(info);
