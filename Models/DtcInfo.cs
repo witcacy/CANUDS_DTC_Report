@@ -17,6 +17,12 @@ namespace CANUDS_DTC_Report.Models
         public string TypeBits { get; set; }        // Bits decodificados que indican el tipo de DTC
         public uint CanId { get; set; }             // ID CAN del ECU que envió el DTC
 
+        // Código en formato L000000
+        public string LCode { get; set; }
+
+        // Protocolo OBD II derivado del prefijo (P/C/B/U)
+        public string ObdProtocol { get; set; }
+
         public List<string> CodeBytes { get; set; } = new List<string>(); // Bytes separados: MSB, middle, LSB, status
 
         public DtcInfo(string code, string description, string status, string severity, string origin)

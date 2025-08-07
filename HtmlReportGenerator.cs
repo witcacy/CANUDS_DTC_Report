@@ -236,12 +236,14 @@ namespace CANUDS_DTC_Report
 
             html.AppendLine("<h2>Códigos DTC</h2>");
             html.AppendLine("<table>");
-            html.AppendLine("<tr><th>DTC</th><th>Descripción</th><th>ID CAN</th><th>Subfunción</th><th>Fragmento TRC</th><th>Fragmento DTC</th><th>Paso a paso</th></tr>");
+            html.AppendLine("<tr><th>DTC</th><th>L-Code</th><th>Protocolo OBD II</th><th>Descripción</th><th>ID CAN</th><th>Subfunción</th><th>Fragmento TRC</th><th>Fragmento DTC</th><th>Paso a paso</th></tr>");
 
             foreach (var dtc in dtcs)
             {
                 html.AppendLine("<tr>");
                 html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.Code}\" target=\"_blank\">{dtc.Code}</a></td>");
+                html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.LCode}\" target=\"_blank\">{dtc.LCode}</a></td>");
+                html.AppendLine($"<td><a href=\"https://dot.report/dtc/{dtc.Code}\" target=\"_blank\">{dtc.ObdProtocol}</a></td>");
                 html.AppendLine($"<td>{dtc.Description}</td>");
                 html.AppendLine($"<td>0x{dtc.CanId:X3}</td>");
                 html.AppendLine($"<td>{dtc.SubFunction}</td>");
