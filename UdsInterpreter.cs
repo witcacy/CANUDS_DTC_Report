@@ -96,23 +96,13 @@ namespace CANUDS_DTC_Report
                             break;
                     }
 
-                    var bytesHtml = new StringBuilder();
-                    bytesHtml.Append("<table class='dtc-bytes'>");
-                    bytesHtml.Append("<thead><tr>");
-                    bytesHtml.Append("<th>MSB</th><th>Middle</th><th>LSB</th><th>Status</th>");
-                    bytesHtml.Append("</tr></thead><tbody><tr>");
-                    bytesHtml.Append($"<td class='b1'>{b1:X2}</td>");
-                    bytesHtml.Append($"<td class='b2'>{b2:X2}</td>");
-                    bytesHtml.Append($"<td class='b3'>{b3:X2}</td>");
-                    bytesHtml.Append($"<td class='status'>{statusByte:X2}</td>");
-                    bytesHtml.Append("</tr></tbody></table>");
-                    string coloredFragment = bytesHtml.ToString();
-
-                    string fragment = new HtmlReportGenerator().GenerateExactColoredTRC(
-                        string.Join("\n", msg.RawLines),
+                    string rawFragment = string.Join("\n", msg.RawLines);
+                    string coloredFragment = new HtmlReportGenerator().GenerateExactColoredTRC(
+                        rawFragment,
                         dtcNumber,
                         b1, b2, b3, statusByte
                     );
+                    string fragment = rawFragment;
 
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
@@ -146,6 +136,7 @@ namespace CANUDS_DTC_Report
                         LCode = lCode,
                         ObdProtocol = obdProtocol
                     };
+                    info.CodeBytes.AddRange(new[] { b1.ToString("X2"), b2.ToString("X2"), b3.ToString("X2"), statusByte.ToString("X2") });
 
                     dtcs.Add(info);
                     dtcNumber++;
