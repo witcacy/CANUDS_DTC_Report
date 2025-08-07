@@ -54,66 +54,54 @@ namespace CANUDS_DTC_Report
             for (int msgIndex = 0; msgIndex < messages.Count; msgIndex++)
             {
                 var msg = messages[msgIndex];
-                if (msg.Payload.Count < 3 || msg.Payload[0] != 0x59) // 0x59 = Positive Response to 0x19
+                if (msg.Payload.Count < 3 || msg.Payload[0] != 0x59)
                     continue;
 
                 string subFunction = msg.Payload.Count > 1 ? msg.Payload[1].ToString("X2") : "";
                 int dtcNumber = 0;
                 int index = 3;
+
                 while (index + 3 < msg.Payload.Count)
                 {
-                    uint dtcRaw = (uint)((msg.Payload[index] << 16) | (msg.Payload[index + 1] << 8) | msg.Payload[index + 2]);
-                    string dtcCode = ConvertToDtcCode(dtcRaw);
-                    string description = DtcDescriptions.TryGetValue(dtcCode, out var desc) ? desc : "Unknown";
-                    string status = "Stored"; //  decode status bits
-                    string severity = "Unknown";
-                    string origin = EcuMap.TryGetValue(msg.Id, out var name) ? name : "Desconocido";
-
                     byte b1 = msg.Payload[index];
                     byte b2 = msg.Payload[index + 1];
                     byte b3 = msg.Payload[index + 2];
                     byte statusByte = msg.Payload[index + 3];
 
-                    // Table with only the DTC bytes
-                    // Table with labeled DTC bytes
-                    var bytesHtml = new StringBuilder();
+                    uint dtcRaw = (uint)((b1 << 16) | (b2 << 8) | b3);
+                    string dtcCode = ConvertToFullDtcCode(dtcRaw);
+                    string description = "Unknown"; // Simplificado sin diccionario
+                    string status = DecodeStatusFlags(statusByte);
+                    string severity = "Unknown";
+                    string origin = EcuMap.TryGetValue(msg.Id, out var name) ? name : "Desconocido";
 
+                    var bytesHtml = new StringBuilder();
                     bytesHtml.Append("<table class='dtc-bytes'>");
                     bytesHtml.Append("<thead><tr>");
-                    bytesHtml.Append("<th>MSB</th>");
-                    bytesHtml.Append("<th>Middle</th>");
-                    bytesHtml.Append("<th>LSB</th>");
-                    bytesHtml.Append("<th>Status</th>");
-                    bytesHtml.Append("</tr></thead>");
-                    bytesHtml.Append("<tbody><tr>");
+                    bytesHtml.Append("<th>MSB</th><th>Middle</th><th>LSB</th><th>Status</th>");
+                    bytesHtml.Append("</tr></thead><tbody><tr>");
                     bytesHtml.Append($"<td class='b1'>{b1:X2}</td>");
                     bytesHtml.Append($"<td class='b2'>{b2:X2}</td>");
                     bytesHtml.Append($"<td class='b3'>{b3:X2}</td>");
                     bytesHtml.Append($"<td class='status'>{statusByte:X2}</td>");
                     bytesHtml.Append("</tr></tbody></table>");
-
                     string coloredFragment = bytesHtml.ToString();
 
-
-                    // Preserve spacing of TRC lines
                     string fragment = new HtmlReportGenerator().GenerateExactColoredTRC(
-    string.Join("\n", msg.RawLines),
-    dtcNumber,  // n-ésimo DTC en la respuesta
-    b1, b2, b3, statusByte
-);
+                        string.Join("\n", msg.RawLines),
+                        dtcNumber,
+                        b1, b2, b3, statusByte
+                    );
 
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
                     string typeBits = $"{bits} -> {dtcCode[0]}";
 
-                    // Build binary representation highlighting zero bits in gray
                     var statusBits = new StringBuilder();
                     for (int bit = 7; bit >= 0; bit--)
                     {
                         bool set = ((statusByte >> bit) & 1) == 1;
-                        //statusBits.Append(set ? '1' : "<span class='unused'>0</span>");
                         statusBits.Append(set ? "1" : "<span class='unused'>0</span>");
-
                     }
 
                     string explanation =
@@ -121,7 +109,7 @@ namespace CANUDS_DTC_Report
                         $"<li>El identificador CAN <mark>0x{msg.Id:X3}</mark> proviene de la trama ISO-TP que encapsula la respuesta.</li>" +
                         $"<li>El primer byte es <mark>0x59</mark>; restando 0x40 se identifica el servicio original <mark>0x19</mark> (ReadDTCInformation).</li>" +
                         $"<li>Los bytes <span class='b1'>{b1:X2}</span> <span class='b2'>{b2:X2}</span> <span class='b3'>{b3:X2}</span> forman 0x{dtcRaw:X6}. " +
-                        $"Los bits 22-23 (=00) señalan la letra <strong>{dtcCode[0]}</strong> y el resto produce {dtcCode.Substring(1)}.</li>" +
+                        $"Los bits 22-23 (= {bits}) señalan la letra <strong>{dtcCode[0]}</strong> y el resto produce {dtcCode.Substring(1)}.</li>" +
                         $"<li>El estado <span class='status'>{statusByte:X2}</span> = {statusBits}b; los bits en <span class='unused'>gris</span> no están activos.</li>" +
                         "</ol>";
 
@@ -137,9 +125,8 @@ namespace CANUDS_DTC_Report
                     };
 
                     dtcs.Add(info);
-
-                    index += 4; // 3 bytes DTC + 1 byte status availability mask
-                    dtcNumber++; 
+                    dtcNumber++;
+                    index += 4;
                 }
             }
 
@@ -262,5 +249,29 @@ namespace CANUDS_DTC_Report
                 return "ECU Information";
             return $"0x{sid:X2}";
         }
+        private static string ConvertToFullDtcCode(uint raw)
+        {
+            int typeBits = (int)((raw >> 22) & 0x3);
+            char prefix;
+            switch (typeBits)
+            {
+                case 0: prefix = 'P'; break;
+                case 1: prefix = 'C'; break;
+                case 2: prefix = 'B'; break;
+                case 3: prefix = 'U'; break;
+                default: prefix = '?'; break;
+            }
+
+            uint code = raw & 0x3FFFFF;
+            return string.Format("{0}{1:X6}", prefix, code);
+        }
+
+        private static string DecodeStatusFlags(byte status)
+        {
+            if ((status & 0x08) != 0) return "Active/static";
+            if ((status & 0x01) != 0) return "Passive/Sporadic";
+            return "Unknown";
+        }
+
     }
 }
