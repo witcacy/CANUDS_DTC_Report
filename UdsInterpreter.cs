@@ -97,12 +97,13 @@ namespace CANUDS_DTC_Report
                     }
 
                     string rawFragment = string.Join("\n", msg.RawLines);
-                    string coloredFragment = new HtmlReportGenerator().GenerateExactColoredTRC(
+                    var generator = new HtmlReportGenerator();
+                    string fragment = generator.GenerateTrcFragment(
                         rawFragment,
                         dtcNumber,
                         b1, b2, b3, statusByte
                     );
-                    string fragment = rawFragment;
+                    string coloredFragment = generator.GenerateDtcTable(b1, b2, b3, statusByte);
 
                     int typeBitsVal = (int)((dtcRaw & 0xC00000) >> 22);
                     string bits = Convert.ToString(typeBitsVal, 2).PadLeft(2, '0');
