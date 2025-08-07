@@ -70,7 +70,7 @@ namespace CANUDS_DTC_Report
 
                     uint dtcRaw = (uint)((b1 << 16) | (b2 << 8) | b3);
                     string dtcCode = ConvertToFullDtcCode(dtcRaw);
-                    string lCode = $"L{dtcRaw:X6}";
+                    string lCode = $"{dtcCode[0]}{(dtcRaw & 0xFFFF):X4}";
                     string description = "Unknown"; // Simplificado sin diccionario
                     string status = DecodeStatusFlags(statusByte);
                     string severity = "Unknown";
