@@ -37,7 +37,9 @@ namespace CANUDS_DTC_Report
             var highlights = LocateDtcBytes(payload, dtcIndex, b1, b2, b3, statusByte);
 
             sb.AppendLine("<table class='dtc-bytes'>");
-            sb.AppendLine("<thead><tr><th>ID CAN</th><th>Bytes</th></tr></thead>");
+
+            sb.AppendLine("<thead><tr><th>ID CAN</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>");
+
             sb.AppendLine("<tbody>");
 
             int globalIndex = 0;
@@ -51,10 +53,9 @@ namespace CANUDS_DTC_Report
                 {
                     string hex = b.ToString("X2");
                     if (highlights.TryGetValue(globalIndex, out var hl))
-                        sb.AppendFormat("<span class='{0}' title='{1}'>{2}</span> ", hl.cssClass, hl.label, hex);
+                        sb.AppendFormat("<td class='{0}' title='{1}'>{2}</td>", hl.cssClass, hl.label, hex);
                     else
-                        sb.AppendFormat("{0} ", hex);
-
+                        sb.AppendFormat("<td>{0}</td>", hex);
                     globalIndex++;
                 }
 
