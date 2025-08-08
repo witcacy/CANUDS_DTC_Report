@@ -10,12 +10,13 @@ namespace CANUDS_DTC_Report
 {
     public class HtmlReportGenerator
     {
-        public string GenerateExactColoredTRC(string rawFragment, int dtcIndex, byte b1, byte b2, byte b3, byte statusByte)
+        public string GenerateTrcFragment(string rawFragment, int dtcIndex,
+                                          byte b1, byte b2, byte b3, byte statusByte)
         {
             var sb = new StringBuilder();
             var lines = rawFragment.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var stream = new List<(string id, byte[] data)>();
+            var frames = new List<(string id, byte[] data)>();
             var payload = new List<byte>();
 
             foreach (var line in lines)
@@ -29,145 +30,87 @@ namespace CANUDS_DTC_Report
                     .Select(x => Convert.ToByte(x, 16))
                     .ToArray();
 
-                stream.Add((id, bytes));
+                frames.Add((id, bytes));
                 payload.AddRange(bytes);
             }
 
-            // ISO-TP UDS HEADER: 0x59, subfunc, status mask → 3 bytes
-            //int udsHeaderLength = 3;
-            //int payloadOffset = udsHeaderLength + (dtcIndex * 4);
+            var highlights = LocateDtcBytes(payload, dtcIndex, b1, b2, b3, statusByte);
 
-            // Colorear solo los bytes del DTC actual
-            //var highlightMap = new Dictionary<int, (string color, string label)>
-            //{
-            //    { payloadOffset,     ("#fdd", "MSB") },
-            //    { payloadOffset + 1, ("#dfd", "Middle") },
-            //    { payloadOffset + 2, ("#ddf", "LSB") },
-            //    { payloadOffset + 3, ("#eee", "Status") }
-            //};
-
-            var highlightMap = PlacebyteInFragmentoTRC(payload, dtcIndex, b1, b2, b3, statusByte);
-
-            // Tabla HTML con coloreo donde cada byte es una columna individual
-            int maxBytes = stream.Max(s => s.data.Length);
             sb.AppendLine("<table class='dtc-bytes'>");
-            sb.Append("<thead><tr><th>ID CAN</th>");
-            for (int i = 0; i < maxBytes; i++)
-                sb.Append("<th></th>");
-            sb.AppendLine("</tr></thead>");
+            sb.AppendLine("<thead><tr><th>ID CAN</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>");
             sb.AppendLine("<tbody>");
 
-            int globalByteIndex = 0;
-
-            foreach (var (id, bytes) in stream)
+            int globalIndex = 0;
+            foreach (var (id, data) in frames)
             {
                 sb.Append("<tr>");
                 sb.AppendFormat("<td style='background:#ffc;font-weight:bold'>{0}</td>", id);
 
-                foreach (var b in bytes)
+                foreach (var b in data)
                 {
                     string hex = b.ToString("X2");
-
-                    if (highlightMap.TryGetValue(globalByteIndex, out var hl))
-                    {
+                    if (highlights.TryGetValue(globalIndex, out var hl))
                         sb.AppendFormat("<td class='{0}' title='{1}'>{2}</td>", hl.cssClass, hl.label, hex);
-                    }
                     else
-                    {
                         sb.AppendFormat("<td>{0}</td>", hex);
-                    }
 
-                    globalByteIndex++;
+                    globalIndex++;
                 }
 
                 sb.AppendLine("</tr>");
             }
 
             sb.AppendLine("</tbody></table>");
-
-            Dictionary<int, (string cssClass, string label)> PlacebyteInFragmentoTRC(List<byte> allBytes, int occurrenceIndex, byte pb1, byte pb2, byte pb3, byte status)
-            {
-                var sequence = new byte[] { pb1, pb2, pb3, status };
-                int found = 0;
-                for (int i = 0; i <= allBytes.Count - sequence.Length; i++)
-                {
-                    bool match = true;
-                    for (int j = 0; j < sequence.Length; j++)
-                    {
-                        if (allBytes[i + j] != sequence[j])
-                        {
-                            match = false;
-                            break;
-                        }
-                    }
-                    if (match)
-                    {
-                        if (found == occurrenceIndex)
-                        {
-                            return new Dictionary<int, (string cssClass, string label)>
-                            {
-                                { i,     ("b1", "MSB") },
-                                { i + 1, ("b2", "Middle") },
-                                { i + 2, ("b3", "LSB") },
-                                { i + 3, ("status", "Status") }
-                            };
-                        }
-                        found++;
-                        i += sequence.Length - 1;
-                    }
-                }
-                return new Dictionary<int, (string cssClass, string label)>();
-            }
-
             return sb.ToString();
         }
 
-
-        public string GenerateColoredHtmlTable(string input)
+        public string GenerateDtcTable(byte b1, byte b2, byte b3, byte statusByte)
         {
-            var lines = input.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             var sb = new StringBuilder();
-
-            // HTML header
             sb.AppendLine("<table class='dtc-bytes'>");
-            sb.AppendLine("<thead><tr><th>ID CAN</th><th>Bytes</th></tr></thead>");
+            sb.AppendLine("<thead><tr><th>MSB</th><th>Middle</th><th>LSB</th><th>Status</th></tr></thead>");
             sb.AppendLine("<tbody>");
-
-            // Valores que debemos colorear según tabla
-            var highlightValues = new Dictionary<string, string>
-        {
-            {"00", "b1"},
-            {"59", "b2"},
-            {"31", "b3"},
-            {"28", "status"}
-        };
-
-            foreach (var line in lines)
-            {
-                var match = Regex.Match(line, @"^(0x[0-9A-Fa-f]+)\s((?:[0-9A-Fa-f]{2}\s?)+)$");
-                if (!match.Success) continue;
-
-                string id = match.Groups[1].Value;
-                string[] bytes = match.Groups[2].Value.Trim().Split(' ');
-
-                sb.AppendLine("<tr>");
-                sb.AppendFormat("<td>{0}</td>", id);
-                sb.Append("<td>");
-
-                foreach (var b in bytes)
-                {
-                    if (highlightValues.TryGetValue(b, out var cssClass))
-                        sb.AppendFormat("<span class='{0}'>{1}</span> ", cssClass, b);
-                    else
-                        sb.AppendFormat("{0} ", b);
-                }
-
-                sb.AppendLine("</td></tr>");
-            }
-
+            sb.AppendFormat("<tr><td class='b1'>{0:X2}</td><td class='b2'>{1:X2}</td><td class='b3'>{2:X2}</td><td class='status'>{3:X2}</td></tr>",
+                            b1, b2, b3, statusByte);
             sb.AppendLine("</tbody></table>");
             return sb.ToString();
         }
+
+        private Dictionary<int, (string cssClass, string label)> LocateDtcBytes(List<byte> allBytes, int occurrenceIndex,
+                                                                               byte pb1, byte pb2, byte pb3, byte status)
+        {
+            var seq = new byte[] { pb1, pb2, pb3, status };
+            int found = 0;
+            for (int i = 0; i <= allBytes.Count - seq.Length; i++)
+            {
+                bool match = true;
+                for (int j = 0; j < seq.Length; j++)
+                {
+                    if (allBytes[i + j] != seq[j])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match)
+                {
+                    if (found == occurrenceIndex)
+                    {
+                        return new Dictionary<int, (string cssClass, string label)>
+                        {
+                            { i,     ("b1", "MSB") },
+                            { i + 1, ("b2", "Middle") },
+                            { i + 2, ("b3", "LSB") },
+                            { i + 3, ("status", "Status") }
+                        };
+                    }
+                    found++;
+                    i += seq.Length - 1;
+                }
+            }
+            return new Dictionary<int, (string cssClass, string label)>();
+        }
+
         public void GenerateReport(List<DtcInfo> dtcs, List<UdsMessageInfo> udsMessages, List<EcuInfo> ecuInfos, string analysis, string outputPath)
         {
             var html = new StringBuilder();
@@ -232,8 +175,7 @@ namespace CANUDS_DTC_Report
                 html.AppendLine($"<td>{dtc.Description}</td>");
                 html.AppendLine($"<td>0x{dtc.CanId:X3}</td>");
                 html.AppendLine($"<td>{dtc.SubFunction}</td>");
-                html.AppendLine($"<td><pre>{dtc.MessageFragment}</pre></td>");
-
+                html.AppendLine($"<td>{dtc.MessageFragment}</td>");
                 html.AppendLine($"<td>{dtc.ColoredFragment}</td>");
                 html.AppendLine($"<td>{dtc.Explanation}</td>");
                 html.AppendLine("</tr>");
@@ -255,9 +197,9 @@ namespace CANUDS_DTC_Report
                         html.AppendLine($"<p>ECU Tipo: {ecuName}</p>");
                     html.AppendLine("<table>");
                     html.AppendLine("<tr><th>DTC</th><th>Descripción breve</th></tr>");
-                    foreach (var dtc in group)
+                    foreach (var d in group)
                     {
-                        html.AppendLine($"<tr><td>{dtc.Code}</td><td>{dtc.Description}</td></tr>");
+                        html.AppendLine($"<tr><td>{d.Code}</td><td>{d.Description}</td></tr>");
                     }
                     html.AppendLine("</table>");
                 }
@@ -290,3 +232,4 @@ namespace CANUDS_DTC_Report
         }
     }
 }
+
