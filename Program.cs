@@ -10,7 +10,7 @@ namespace CANUDS_DTC_Report
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            Application.Run(new MdiParentForm());
         }
     }
 }

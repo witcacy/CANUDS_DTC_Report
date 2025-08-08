@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CANUDS_DTC_Report.Models;
+using System.IO;
 
 namespace CANUDS_DTC_Report
 {
@@ -64,16 +65,25 @@ namespace CANUDS_DTC_Report
                 txtOutput.AppendText($"Analisis: {analysis}{Environment.NewLine}");
 
                
-                var saveDialog = new SaveFileDialog();
-                saveDialog.Filter = "HTML Files (*.html)|*.html";
-                saveDialog.FileName = "Reporte_DTC_CAN_UDS.html";
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var reportsDir = Path.Combine(baseDir, "Reports");
+                Directory.CreateDirectory(reportsDir);
 
-                if (saveDialog.ShowDialog() == DialogResult.OK)
+                var sourceName = Path.GetFileNameWithoutExtension(trcFilePath).ToLowerInvariant();
+                var guid = Guid.NewGuid().ToString("N").Substring(0, 6);
+                var fileName = $"rpt_{sourceName}_{guid}.html";
+                var outputPath = Path.Combine(reportsDir, fileName);
+
+                var generator = new HtmlReportGenerator();
+                generator.GenerateReport(dtcs, udsMessages, ecuInfos, analysis, outputPath);
+                txtOutput.AppendText($"Reporte generado exitosamente: {outputPath}{Environment.NewLine}");
+
+                var viewer = new ReportViewerForm(outputPath)
                 {
-                    var generator = new HtmlReportGenerator();
-                    generator.GenerateReport(dtcs, udsMessages, ecuInfos, analysis, saveDialog.FileName);
-                    txtOutput.AppendText($"Reporte generado exitosamente: {saveDialog.FileName}{Environment.NewLine}");
-                }
+                    MdiParent = this.MdiParent,
+                    WindowState = FormWindowState.Maximized
+                };
+                viewer.Show();
             }
             catch (Exception ex)
             {

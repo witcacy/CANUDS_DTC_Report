@@ -48,12 +48,14 @@
   <ItemGroup>
     <Compile Include="HtmlReportGenerator.cs" />
     <Compile Include="IsoTpDecoder.cs" />
+    <Compile Include="MdiParentForm.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ReportViewerForm.cs" />
     <Compile Include="Models\CanFrame.cs" />
     <Compile Include="Models\DtcInfo.cs" />
     <Compile Include="Models\EcuInfo.cs" />
