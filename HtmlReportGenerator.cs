@@ -37,7 +37,9 @@ namespace CANUDS_DTC_Report
             var highlights = LocateDtcBytes(payload, dtcIndex, b1, b2, b3, statusByte);
 
             sb.AppendLine("<table class='dtc-bytes'>");
+
             sb.AppendLine("<thead><tr><th>ID CAN</th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr></thead>");
+
             sb.AppendLine("<tbody>");
 
             int globalIndex = 0;
@@ -45,6 +47,7 @@ namespace CANUDS_DTC_Report
             {
                 sb.Append("<tr>");
                 sb.AppendFormat("<td style='background:#ffc;font-weight:bold'>{0}</td>", id);
+                sb.Append("<td>");
 
                 foreach (var b in data)
                 {
@@ -53,11 +56,10 @@ namespace CANUDS_DTC_Report
                         sb.AppendFormat("<td class='{0}' title='{1}'>{2}</td>", hl.cssClass, hl.label, hex);
                     else
                         sb.AppendFormat("<td>{0}</td>", hex);
-
                     globalIndex++;
                 }
 
-                sb.AppendLine("</tr>");
+                sb.AppendLine("</td></tr>");
             }
 
             sb.AppendLine("</tbody></table>");
